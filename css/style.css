@@ -1,0 +1,67 @@
+:root
+{
+	/* --item-width: 64rem; */
+}
+
+body
+{
+	background: black;
+}
+
+section
+{
+	height: 100%;
+	width: 100%;
+	overflow: hidden;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4rem;
+	perspective: 100rem;
+
+	& > div
+	{
+		display: none;
+		opacity: .3;
+		/* transition: 300ms all; */
+		transform-style: preserve-3d;
+		/* width: 53.33%; */
+		border-radius: 1rem;
+
+		img
+		{
+			width: 100%;
+			/* max-width: var(--item-width); */
+			height: auto;
+		}
+
+		&.prev,
+		&.active,
+		&.next
+		{
+			justify-content: center;
+			display: flex;
+			z-index: 2;
+		}
+
+		&.prev
+		{
+			transform: translateX(-10rem) rotateY(25deg);
+		}
+
+		&.active
+		{
+			z-index: 3;
+			transform: translateZ(40rem);
+			opacity: 1;
+			box-shadow:0 0 10rem 3rem rgb(255 255 255 / 18%);
+		}
+
+		&.next
+		{
+			transform: translateX(10rem) rotateY(-25deg);
+		}
+	}
+
+
+}

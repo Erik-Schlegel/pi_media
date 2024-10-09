@@ -1,0 +1,72 @@
+/* Domain Normalizers */
+*
+{
+	box-sizing: border-box;
+}
+
+:root
+{
+	font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+
+html,
+body,
+main
+{
+	height: 100%;
+}
+
+
+html
+{
+	/* with the standard base font size of 16px this will make 1rem === 10px. */
+	font-size: 62.5%;
+	scroll-behavior: smooth;
+}
+
+body
+{
+	font-size: 1.6rem;
+	width: 100%;
+	min-width: 320px;
+}
+
+
+main { width: 100% }
+
+
+ul,
+ol,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6
+{
+	font-size: inherit;
+	color: inherit;
+	line-height: inherit;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+img
+{
+	display: block;
+}
+
+
+/* Remove browser's tendency to outline stuff with a solid or dotted border when clicked. */
+:focus { outline: none }
+::-moz-focus-inner { border: 0 }
