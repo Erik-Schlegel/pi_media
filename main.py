@@ -1,5 +1,7 @@
 import webview
 from pynput import keyboard
+import pyautogui
+
 
 class Api:
     def say_hello(self):
@@ -8,8 +10,18 @@ class Api:
 api = Api()
 print("Starting PyWebview...")
 
+
+def hide_cursor():
+    pyautogui.FAILSAFE = False
+    screen_width, screen_height = pyautogui.size()
+    pyautogui.moveTo(screen_width + 100, screen_height + 100)
+
+
+hide_cursor()
 # Create a full-screen and frameless window
 window = webview.create_window('My App', 'index.html', js_api=api, fullscreen=True, frameless=True)
+
+
 
 # Function to close the window after ESC key
 def on_press(key):

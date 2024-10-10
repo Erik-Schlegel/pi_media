@@ -12,8 +12,20 @@
         }
 
 
+        const resetStyles = ()=>
+        {
+            document.querySelector('.prev')?.classList.remove('prev');
+            document.querySelector('.active')?.classList.remove('active');
+            document.querySelector('.next')?.classList.remove('next');
+        }
+
+
         const advanceSlideshow = ()=>
         {
+            if(activeIndex === itemCount) return;
+
+            resetStyles();
+
             //active becomes previous
             let active = getElementIndex(activeIndex);
             active.classList.add('prev');
@@ -22,7 +34,7 @@
             let next = getElementIndex(activeIndex+1);
             next.classList.add('active');
 
-            if(activeIndex < itemCount-1)
+            if(activeIndex <= itemCount)
             {
                 getElementIndex(++activeIndex+1).classList.add('next');
             }
@@ -33,6 +45,8 @@
         {
             if(activeIndex === 1) return;
 
+            resetStyles();
+
             //active becomes next
             let active = getElementIndex(activeIndex);
             active.classList.add('next');
@@ -41,7 +55,7 @@
             let prev = getElementIndex(activeIndex-1);
             prev.classList.add('active');
 
-            if(activeIndex > 2)
+            if(activeIndex >= 2)
             {
                 getElementIndex(--activeIndex-1).classList.add('prev');
             }
@@ -55,13 +69,8 @@
                 return;
             }
 
-            document.querySelector('.prev')?.classList.remove('prev');
-            document.querySelector('.active')?.classList.remove('active');
-            document.querySelector('.next')?.classList.remove('next');
-
             e.key === 'ArrowRight' && advanceSlideshow();
             e.key === 'ArrowLeft' && rewindSlideshow();
-
 
         })
 

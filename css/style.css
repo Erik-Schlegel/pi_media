@@ -6,6 +6,7 @@
 body
 {
 	background: black;
+	cursor: none;
 }
 
 section
@@ -22,8 +23,8 @@ section
 	& > div
 	{
 		display: none;
-		opacity: .3;
-		/* transition: 300ms all; */
+		opacity: .1;
+		transition: 250ms all;
 		transform-style: preserve-3d;
 		/* width: 53.33%; */
 		border-radius: 1rem;
@@ -54,7 +55,7 @@ section
 			z-index: 3;
 			transform: translateZ(40rem);
 			opacity: 1;
-			box-shadow:0 0 10rem 3rem rgb(255 255 255 / 18%);
+			box-shadow:0 0 10rem 3rem rgb(255 255 255 / 12%);
 		}
 
 		&.next
