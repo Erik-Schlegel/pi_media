@@ -1,7 +1,5 @@
 import webview
-from pynput import keyboard
-import pyautogui
-
+import os
 
 class Api:
     def say_hello(self):
@@ -10,31 +8,21 @@ class Api:
 api = Api()
 print("Starting PyWebview...")
 
+# Use absolute path for the HTML file
+html_file = os.path.abspath('index.html')
 
-def hide_cursor():
-    pyautogui.FAILSAFE = False
-    screen_width, screen_height = pyautogui.size()
-    pyautogui.moveTo(screen_width + 100, screen_height + 100)
+# Create the window without trying to do anything before it exists
+window = webview.create_window('My App', html_file, js_api=api, fullscreen=True, frameless=True)
 
-
-hide_cursor()
-# Create a full-screen and frameless window
-window = webview.create_window('My App', 'index.html', js_api=api, fullscreen=True, frameless=True)
-
-
-
-# Function to close the window after ESC key
-def on_press(key):
+# Define a function to run once the window has finished loading
+def on_loaded():
     try:
-        if key == keyboard.Key.esc:
-            print("Escape key pressed, closing window...")
-            window.destroy()
-    except Exception as e:
-        print(f"Error: {e}")
-
-# Start a listener thread for ESC key
-listener = keyboard.Listener(on_press=on_press)
-listener.start()
+        print("Content loaded, attempting to refresh window...")
+        # Force a refresh by resizing or simulating a resize event
+        window.evaluate_js("window.dispatchEvent(new Event('resize'));")
+    except webview.WebViewException as e:
+        print(f"WebViewException occurred: {e}")
 
 print("Window created, starting GUI...")
-webview.start()
+# Start the webview GUI, specifying the on_loaded callback
+webview.start(on_loaded)

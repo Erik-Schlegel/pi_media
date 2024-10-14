@@ -11,9 +11,9 @@
 	<body>
 		<main id="app">
 
-			<video width="1000" height="563" controls>
-				<source src="dolby-vision-art-of-essence-(www.demolandia.net).mp4" type="video/mp4">
-			</video>
+			<!-- <video width="1000" height="563" controls>
+				<source src="sample.mp4" type="video/mp4">
+			</video> -->
 
 			<section>
 				<div class="prev">
@@ -45,5 +45,14 @@
 		</main>
 
 		<script type="module" src="/js/main.js"></script>
+		<script>
+			window.onload = function() {
+				// Force a repaint to fix rendering issues
+				document.body.style.display = 'none';
+				setTimeout(function() {
+					document.body.style.display = 'block';
+				}, 100);
+			};
+		</script>
 	</body>
 </html>
