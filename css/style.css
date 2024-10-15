@@ -6,7 +6,7 @@
 body
 {
 	background: black;
-	/* cursor: none; */
+	cursor: none;
 }
 
 
@@ -24,8 +24,8 @@ section
 	& > div
 	{
 		display: none;
-		opacity: .1;
-		transition: 250ms all;
+		opacity: .2;
+		transition: 150ms all;
 		transform-style: preserve-3d;
 		/* width: 53.33%; */
 		border-radius: 1rem;

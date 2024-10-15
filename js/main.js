@@ -62,15 +62,29 @@
         }
 
 
+        const playVideo = ()=>
+        {
+            const video = document.querySelector('video');
+            if(!video) return;
+
+            if (video.paused)
+
+                video.play();
+             else
+                video.pause();
+        }
+
+
         document.addEventListener('keyup', e=>
         {
-            if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')
-            {
+            if(e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== ' ')
                 return;
-            }
+
+            e.preventDefault();
 
             e.key === 'ArrowRight' && advanceSlideshow();
             e.key === 'ArrowLeft' && rewindSlideshow();
+            e.key === ' ' && playVideo(e);
 
         })
 
