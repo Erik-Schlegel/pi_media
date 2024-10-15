@@ -1,12 +1,19 @@
-:root
-{
-	/* --item-width: 64rem; */
-}
 
 body
 {
 	background: black;
 	cursor: none;
+}
+
+
+video
+{
+	position: absolute;
+	z-index: 1000;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
 }
 
 
@@ -65,5 +72,18 @@ section
 		}
 	}
 
+}
 
+
+[data-mode=Carousel]
+{
+	video { display: none !important}
+	section { display: flex !important}
+}
+
+
+[data-mode=Video]
+{
+	video { display: block !important }
+	section { display: none !important }
 }

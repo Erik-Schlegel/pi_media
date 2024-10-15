@@ -1,5 +1,6 @@
 venv
 tmp
+usb
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
