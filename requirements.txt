@@ -1,3 +1,0 @@
-bottle==0.13.2
-proxy-tools==0.1.0
-pywebview==5.2

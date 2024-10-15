@@ -11,11 +11,6 @@
 	<body>
 		<main id="app">
 
-			<video width="1000" height="563" controls>
-				<!-- <source src="file:///home/media/eschware/pi_media/sample.mp4" type="video/mp4"> -->
-				<source src="file:///home/media/eschware/pi_media/cham.mkv" type="video/mp4">
-			</video>
-
 			<section>
 				<div class="prev">
 					<img src="https://picsum.photos/seed/001/1000/563" alt="" srcset="">
@@ -48,13 +43,27 @@
 		<script type="module" src="file:///home/media/eschware/pi_media/js/main.js"></script>
 		<script>
 
-			window.onload = function() {
-				// Force a repaint to fix rendering issues
-				document.body.style.display = 'none';
-				setTimeout(function() {
-					document.body.style.display = 'block';
-				}, 100);
-			};
+			// window.onload = function() {
+			// 	// Force a repaint to fix rendering issues
+			// 	document.body.style.display = 'none';
+			// 	setTimeout(function() {
+			// 		document.body.style.display = 'block';
+			// 	}, 100);
+			// };
+
+		// 	document.addEventListener('keydown', function(event) {
+        //     // Check if the space key (key code 32) is pressed
+        //     if (event.code === 'Space') {
+        //         const video = document.querySelector('video');
+        //         if (video.paused) {
+        //             video.play();
+        //         } else {
+        //             video.pause();
+        //         }
+        //         // Prevent the default action of space key (scrolling)
+        //         event.preventDefault();
+        //     }
+        // });
 		</script>
 	</body>
 </html>
