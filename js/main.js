@@ -10,6 +10,12 @@ import DisplayMode from "./enums/displayMode.js";
 		let activeIndex = 1;
 
 
+		const modeBasedCall_CarouselVideo = (carouselFn, videoFn) =>
+			getMode() === DisplayMode.CAROUSEL ?
+				carouselFn() :
+				videoFn();
+
+
 		const initCarousel = ()=>
 		{
 			let carouselEl = document.querySelector('[data-id=CarouselComponent]');
@@ -42,31 +48,49 @@ import DisplayMode from "./enums/displayMode.js";
 		}
 
 
-		const toggleMode = ()=>
+		const getMode = ()=>
+			document.querySelector('[data-id=App]')?.dataset?.mode;
+
+
+
+		const toggleUIMode = ()=>
 		{
 			let el = document.querySelector('[data-id=App]');
-			if(el.dataset.mode === DisplayMode.VIDEO)
-			{
-				pauseVideo();
-				el.dataset.mode = DisplayMode.CAROUSEL
-			}
-			else
-			{
-				el.dataset.mode = DisplayMode.VIDEO;
-				playVideo();
-			}
+
+			modeBasedCall_CarouselVideo(
+				()=>{ playVideo(); el.dataset.mode = DisplayMode.VIDEO },
+				()=>{ pauseVideo(); el.dataset.mode = DisplayMode.CAROUSEL }
+			)
 		}
 
 
 		const handleEnterPress = ()=>
 		{
-
+			modeBasedCall_CarouselVideo(
+				()=>{},
+				toggleVideoPlay
+			)
 		}
 
 
-		const handleSpacebarPress = ()=>
+		const handleUpPress = ()=> toggleUIMode();
+
+
+		const handleLeftPress = ()=>
 		{
-			toggleVideoPlay();
+			modeBasedCall_CarouselVideo(
+				rewindSlideshow,
+				restartVideo
+			);
+		}
+
+
+		const handleRightPress = ()=>
+		{
+			modeBasedCall_CarouselVideo(
+				advanceSlideshow,
+				()=>{}
+			)
 		}
 
 
@@ -122,6 +146,7 @@ import DisplayMode from "./enums/displayMode.js";
 
 		const playVideo = ()=> document.querySelector('video')?.play();
 		const pauseVideo = ()=> document.querySelector('video')?.pause();
+		const restartVideo = ()=> document.querySelector('video').currentTime = 0;
 
 
 		const addEventHandlers = ()=>
@@ -132,18 +157,16 @@ import DisplayMode from "./enums/displayMode.js";
 					e.key !== 'Enter' &&
 					e.key !== 'ArrowUp' &&
 					e.key !== 'ArrowRight' &&
-					e.key !== 'ArrowLeft' &&
-					e.key !== ' '
+					e.key !== 'ArrowLeft'
 				)
 					return;
 
 				e.preventDefault();
 
 				e.key === 'Enter' && handleEnterPress();
-				e.key === 'ArrowUp' && toggleMode();
-				e.key === 'ArrowRight' && advanceSlideshow();
-				e.key === 'ArrowLeft' && rewindSlideshow();
-				e.key === ' ' && handleSpacebarPress();
+				e.key === 'ArrowUp' && handleUpPress();
+				e.key === 'ArrowRight' && handleRightPress();
+				e.key === 'ArrowLeft' && handleLeftPress();
 
 			})
 		}
