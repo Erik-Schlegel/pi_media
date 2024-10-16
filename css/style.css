@@ -19,6 +19,8 @@ video
 
 section
 {
+	transition: all .250s;
+	opacity: 0;
 	height: 100%;
 	width: 100%;
 	overflow: hidden;
@@ -28,14 +30,19 @@ section
 	gap: 4rem;
 	perspective: 100rem;
 
+	&.loaded
+	{
+		opacity: 1;
+	}
+
 	& > div
 	{
 		display: none;
-		opacity: .2;
+		opacity: .15;
 		transition: 150ms all;
 		transform-style: preserve-3d;
 		/* width: 53.33%; */
-		border-radius: 1rem;
+		background: transparent;
 
 		img
 		{
@@ -50,6 +57,7 @@ section
 		{
 			justify-content: center;
 			display: flex;
+			flex-direction: column;
 			z-index: 2;
 		}
 
@@ -63,7 +71,23 @@ section
 			z-index: 3;
 			transform: translateZ(40rem);
 			opacity: 1;
-			box-shadow:0 0 10rem 3rem rgb(255 255 255 / 12%);
+
+			h3
+			{
+				font-size: 5rem;
+				color: white;
+				position: absolute;
+				text-align: center;
+				left: 0;
+				right: 0;
+				width: 100%;
+				bottom: -13rem;
+			}
+
+			img
+			{
+				box-shadow:0 0 10rem 3rem rgb(255 255 255 / 12%);
+			}
 		}
 
 		&.next

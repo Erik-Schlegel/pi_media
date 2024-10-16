@@ -1,10 +1,31 @@
 import DisplayMode from "./enums/displayMode.js";
 
-(()=>
+(async ()=>
 	{
+		let manifest = await fetch('usb/manifest.json');
+		manifest = await manifest.json();
 
-		let itemCount = document.querySelectorAll('section > div').length;
-		let activeIndex = 2;
+
+		let itemCount = manifest.videos.length;
+		let activeIndex = 1;
+
+
+		const initCarousel = ()=>
+		{
+			let carouselEl = document.querySelector('[data-id=CarouselComponent]');
+			carouselEl.innerHTML = manifest.videos.map(video=>
+				`<div>
+					<img
+						width="${manifest.settings.thumbnail.width}"
+						height="${manifest.settings.thumbnail.height}"
+						src="${video.thumbnailPath}"
+					>
+					<h3>${video.name}</h3>
+				</div>`
+			).join('');
+			advanceSlideshow();
+			setTimeout(()=>{carouselEl.classList.add('loaded')}, 1000);
+		}
 
 
 		const getElementIndex = index =>
@@ -26,12 +47,26 @@ import DisplayMode from "./enums/displayMode.js";
 			let el = document.querySelector('[data-id=App]');
 			if(el.dataset.mode === DisplayMode.VIDEO)
 			{
+				pauseVideo();
 				el.dataset.mode = DisplayMode.CAROUSEL
 			}
 			else
 			{
-				el.dataset.mode = DisplayMode.VIDEO
+				el.dataset.mode = DisplayMode.VIDEO;
+				playVideo();
 			}
+		}
+
+
+		const handleEnterPress = ()=>
+		{
+
+		}
+
+
+		const handleSpacebarPress = ()=>
+		{
+			toggleVideoPlay();
 		}
 
 
@@ -77,36 +112,44 @@ import DisplayMode from "./enums/displayMode.js";
 		}
 
 
-		const playVideo = ()=>
+		const toggleVideoPlay = ()=>
 		{
 			const video = document.querySelector('video');
 			if(!video) return;
-
-			if (video.paused)
-
-				video.play();
-			 else
-				video.pause();
+			video.paused ? video.play() : video.pause();
 		}
 
 
-		document.addEventListener('keyup', e=>
+		const playVideo = ()=> document.querySelector('video')?.play();
+		const pauseVideo = ()=> document.querySelector('video')?.pause();
+
+
+		const addEventHandlers = ()=>
 		{
-			if(
-				e.key !== 'ArrowUp' &&
-				e.key !== 'ArrowRight' &&
-				e.key !== 'ArrowLeft' &&
-				e.key !== ' '
-			)
-				return;
+			document.addEventListener('keyup', e=>
+			{
+				if(
+					e.key !== 'Enter' &&
+					e.key !== 'ArrowUp' &&
+					e.key !== 'ArrowRight' &&
+					e.key !== 'ArrowLeft' &&
+					e.key !== ' '
+				)
+					return;
 
-			e.preventDefault();
+				e.preventDefault();
 
-			e.key === 'ArrowUp' && toggleMode();
-			e.key === 'ArrowRight' && advanceSlideshow();
-			e.key === 'ArrowLeft' && rewindSlideshow();
-			e.key === ' ' && playVideo(e);
+				e.key === 'Enter' && handleEnterPress();
+				e.key === 'ArrowUp' && toggleMode();
+				e.key === 'ArrowRight' && advanceSlideshow();
+				e.key === 'ArrowLeft' && rewindSlideshow();
+				e.key === ' ' && handleSpacebarPress();
 
-		})
+			})
+		}
 
-	})()
+
+		initCarousel();
+		addEventHandlers();
+	}
+)();
