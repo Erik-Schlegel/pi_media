@@ -20,7 +20,7 @@ import DisplayMode from "./enums/displayMode.js";
 		{
 			let carouselEl = document.querySelector('[data-id=CarouselComponent]');
 			carouselEl.innerHTML = manifest.videos.map(video=>
-				`<div>
+				`<div data-video-path="${video.videoPath}">
 					<img
 						width="${manifest.settings.thumbnail.width}"
 						height="${manifest.settings.thumbnail.height}"
@@ -52,14 +52,37 @@ import DisplayMode from "./enums/displayMode.js";
 			document.querySelector('[data-id=App]')?.dataset?.mode;
 
 
+		const setVideoSource = url=>
+		{
+			let el = document.querySelector('[data-id=VideoComponent]');
+			let parent = el.parentNode;
+			el.remove();
+			let vid = document.createElement('video');
+			vid.dataset.id = 'VideoComponent';
+			vid.innerHTML = `<source src="file:///home/media/eschware/pi_media/usb/${url}" type="video/mp4">`;
+			parent.appendChild(vid);
+		}
+
+
 
 		const toggleUIMode = ()=>
 		{
-			let el = document.querySelector('[data-id=App]');
 
+			let el = document.querySelector('[data-id=App]');
 			modeBasedCall_CarouselVideo(
-				()=>{ playVideo(); el.dataset.mode = DisplayMode.VIDEO },
-				()=>{ pauseVideo(); el.dataset.mode = DisplayMode.CAROUSEL }
+				()=>
+				{
+					let selectedSlide = getElementIndex(activeIndex);
+
+					setVideoSource(selectedSlide.dataset['videoPath']);
+					playVideo();
+					el.dataset.mode = DisplayMode.VIDEO
+				},
+				()=>
+				{
+					pauseVideo();
+					el.dataset.mode = DisplayMode.CAROUSEL
+				}
 			)
 		}
 
