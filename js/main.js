@@ -80,15 +80,18 @@ import DisplayMode from "./enums/displayMode.js";
 		}
 
 
-		const addVideoEndHandler = ()=>
+		const addVideoEndHandler = (endTime)=>
 		{
-			activeVideoEl.addEventListener('timeupdate', handleVideoTimeUpdated);
+			endTime === '-1' ?
+				activeVideoEl.addEventListener('ended', handleVideoEnded):
+				activeVideoEl.addEventListener('timeupdate', handleVideoTimeUpdated);
 		}
 
 
 		const removeVideoEndHandler = ()=>
 		{
 			activeVideoEl?.removeEventListener('timeupdate', handleVideoTimeUpdated);
+			activeVideoEl?.removeEventListener('ended', handleVideoEnded);
 		}
 
 
@@ -99,6 +102,13 @@ import DisplayMode from "./enums/displayMode.js";
 				()=> el.dataset.mode = DisplayMode.VIDEO,
 				()=> el.dataset.mode = DisplayMode.CAROUSEL
 			)
+		}
+
+
+		const handleVideoEnded = ()=>
+		{
+			if(!activeVideoEl) return;
+			playNextVideo();
 		}
 
 
@@ -118,8 +128,11 @@ import DisplayMode from "./enums/displayMode.js";
 					toggleUIMode();
 					let selectedSlide = getElementIndex(activeIndex);
 					removeVideoEndHandler();
-					initVideoTag(selectedSlide.dataset['videoPath'], selectedSlide.dataset['videoEnd']);
-					addVideoEndHandler();
+
+					let videoEndTime = selectedSlide.dataset['videoEnd'];
+					initVideoTag(selectedSlide.dataset['videoPath'], videoEndTime);
+
+					addVideoEndHandler(videoEndTime);
 					playVideo(selectedSlide.dataset['videoStart']);
 				},
 				()=> toggleVideoPlay()
@@ -216,6 +229,7 @@ import DisplayMode from "./enums/displayMode.js";
 			videoEl.play();
 		}
 
+
 		const pauseVideo = ()=> document.querySelector('video')?.pause();
 
 
@@ -231,8 +245,10 @@ import DisplayMode from "./enums/displayMode.js";
 			advanceSlideshow();
 			let selectedSlide = getElementIndex(activeIndex);
 			removeVideoEndHandler();
-			initVideoTag(selectedSlide.dataset['videoPath'], selectedSlide.dataset['videoEnd']);
-			addVideoEndHandler();
+
+			let videoEndTime = selectedSlide.dataset['videoEnd'];
+			initVideoTag(selectedSlide.dataset['videoPath'], videoEndTime);
+			addVideoEndHandler(videoEndTime);
 			playVideo(selectedSlide.dataset['videoStart']);
 		}
 
@@ -263,5 +279,6 @@ import DisplayMode from "./enums/displayMode.js";
 
 		initCarousel();
 		addEventHandlers();
+
 	}
 )();
