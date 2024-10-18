@@ -9,6 +9,19 @@ import DisplayMode from "./enums/displayMode.js";
 		let itemCount = manifest.videos.length;
 		let activeIndex = 1;
 
+		let activeVideoEl = null;
+
+
+		const toSeconds = hhmmss=>
+		{
+			if(hhmmss === -1) return hhmmss;
+
+			let splitTime = hhmmss.split(':');
+			return splitTime.length === 3 ?
+				(Number(splitTime[0]) * 3600) + (Number(splitTime[1]) * 60) + Number(splitTime[2]):
+				hhmmss
+		}
+
 
 		const modeBasedCall_CarouselVideo = (carouselFn, videoFn) =>
 			getMode() === DisplayMode.CAROUSEL ?
@@ -16,11 +29,12 @@ import DisplayMode from "./enums/displayMode.js";
 				videoFn();
 
 
+
 		const initCarousel = ()=>
 		{
 			let carouselEl = document.querySelector('[data-id=CarouselComponent]');
 			carouselEl.innerHTML = manifest.videos.map(video=>
-				`<div data-video-path="${video.videoPath}" data-video-start=${video.startTime}>
+				`<div data-video-path="${video.videoPath}" data-video-start=${video.startTime} data-video-end=${toSeconds(video.endTime)}>
 					<img
 						width="${manifest.settings.thumbnail.width}"
 						height="${manifest.settings.thumbnail.height}"
@@ -52,15 +66,29 @@ import DisplayMode from "./enums/displayMode.js";
 			document.querySelector('[data-id=App]')?.dataset?.mode;
 
 
-		const setVideoSource = url=>
+		const initVideoTag = (url, endTime=0)=>
 		{
 			let el = document.querySelector('[data-id=VideoComponent]');
 			let parent = el.parentNode;
 			el.remove();
 			let vid = document.createElement('video');
 			vid.dataset.id = 'VideoComponent';
+			vid.dataset.videoEnd = endTime;
 			vid.innerHTML = `<source src="file:///home/media/eschware/pi_media/usb/${url}" type="video/mp4">`;
 			parent.appendChild(vid);
+			activeVideoEl = document.querySelector('video');
+		}
+
+
+		const addVideoEndHandler = ()=>
+		{
+			activeVideoEl.addEventListener('timeupdate', handleVideoTimeUpdated);
+		}
+
+
+		const removeVideoEndHandler = ()=>
+		{
+			activeVideoEl?.removeEventListener('timeupdate', handleVideoTimeUpdated);
 		}
 
 
@@ -74,6 +102,14 @@ import DisplayMode from "./enums/displayMode.js";
 		}
 
 
+		const handleVideoTimeUpdated = ()=>
+		{
+			if(!activeVideoEl) return;
+			if(activeVideoEl.currentTime < activeVideoEl.dataset.videoEnd) return;
+			playNextVideo()
+		}
+
+
 		const handleEnterPress = ()=>
 		{
 			modeBasedCall_CarouselVideo(
@@ -81,7 +117,9 @@ import DisplayMode from "./enums/displayMode.js";
 				{
 					toggleUIMode();
 					let selectedSlide = getElementIndex(activeIndex);
-					setVideoSource(selectedSlide.dataset['videoPath']);
+					removeVideoEndHandler();
+					initVideoTag(selectedSlide.dataset['videoPath'], selectedSlide.dataset['videoEnd']);
+					addVideoEndHandler();
 					playVideo(selectedSlide.dataset['videoStart']);
 				},
 				()=> toggleVideoPlay()
@@ -113,15 +151,9 @@ import DisplayMode from "./enums/displayMode.js";
 
 		const handleRightPress = ()=>
 		{
-			advanceSlideshow()
 			modeBasedCall_CarouselVideo(
-				()=>{},
-				()=>
-				{
-					let selectedSlide = getElementIndex(activeIndex);
-					setVideoSource(selectedSlide.dataset['videoPath']);
-					playVideo(selectedSlide.dataset['videoStart']);
-				}
+				advanceSlideshow,
+				playNextVideo
 			)
 		}
 
@@ -179,6 +211,7 @@ import DisplayMode from "./enums/displayMode.js";
 		const playVideo = (startTime=0)=>
 		{
 			let videoEl = document.querySelector('video');
+			if(!videoEl) return;
 			videoEl.currentTime = startTime;
 			videoEl.play();
 		}
@@ -190,6 +223,17 @@ import DisplayMode from "./enums/displayMode.js";
 		{
 			let startTime = getElementIndex(activeIndex)?.dataset['videoStart'] || 0;
 			document.querySelector('video').currentTime = startTime;
+		}
+
+
+		const playNextVideo = ()=>
+		{
+			advanceSlideshow();
+			let selectedSlide = getElementIndex(activeIndex);
+			removeVideoEndHandler();
+			initVideoTag(selectedSlide.dataset['videoPath'], selectedSlide.dataset['videoEnd']);
+			addVideoEndHandler();
+			playVideo(selectedSlide.dataset['videoStart']);
 		}
 
 
