@@ -20,7 +20,7 @@ import DisplayMode from "./enums/displayMode.js";
 		{
 			let carouselEl = document.querySelector('[data-id=CarouselComponent]');
 			carouselEl.innerHTML = manifest.videos.map(video=>
-				`<div data-video-path="${video.videoPath}">
+				`<div data-video-path="${video.videoPath}" data-video-start=${video.startTime}>
 					<img
 						width="${manifest.settings.thumbnail.width}"
 						height="${manifest.settings.thumbnail.height}"
@@ -64,25 +64,12 @@ import DisplayMode from "./enums/displayMode.js";
 		}
 
 
-
 		const toggleUIMode = ()=>
 		{
-
 			let el = document.querySelector('[data-id=App]');
 			modeBasedCall_CarouselVideo(
-				()=>
-				{
-					let selectedSlide = getElementIndex(activeIndex);
-
-					setVideoSource(selectedSlide.dataset['videoPath']);
-					playVideo();
-					el.dataset.mode = DisplayMode.VIDEO
-				},
-				()=>
-				{
-					pauseVideo();
-					el.dataset.mode = DisplayMode.CAROUSEL
-				}
+				()=> el.dataset.mode = DisplayMode.VIDEO,
+				()=> el.dataset.mode = DisplayMode.CAROUSEL
 			)
 		}
 
@@ -90,13 +77,29 @@ import DisplayMode from "./enums/displayMode.js";
 		const handleEnterPress = ()=>
 		{
 			modeBasedCall_CarouselVideo(
-				()=>{},
-				toggleVideoPlay
+				()=>
+				{
+					toggleUIMode();
+					let selectedSlide = getElementIndex(activeIndex);
+					setVideoSource(selectedSlide.dataset['videoPath']);
+					playVideo(selectedSlide.dataset['videoStart']);
+				},
+				()=> toggleVideoPlay()
 			)
 		}
 
 
-		const handleUpPress = ()=> toggleUIMode();
+		const handleUpPress = ()=>
+		{
+			modeBasedCall_CarouselVideo(
+				()=>{},
+				()=>
+				{
+					pauseVideo();
+					toggleUIMode();
+				}
+			)
+		}
 
 
 		const handleLeftPress = ()=>
@@ -110,9 +113,15 @@ import DisplayMode from "./enums/displayMode.js";
 
 		const handleRightPress = ()=>
 		{
+			advanceSlideshow()
 			modeBasedCall_CarouselVideo(
-				advanceSlideshow,
-				()=>{}
+				()=>{},
+				()=>
+				{
+					let selectedSlide = getElementIndex(activeIndex);
+					setVideoSource(selectedSlide.dataset['videoPath']);
+					playVideo(selectedSlide.dataset['videoStart']);
+				}
 			)
 		}
 
@@ -167,9 +176,22 @@ import DisplayMode from "./enums/displayMode.js";
 		}
 
 
-		const playVideo = ()=> document.querySelector('video')?.play();
+		const playVideo = (startTime=0)=>
+		{
+			let videoEl = document.querySelector('video');
+			videoEl.currentTime = startTime;
+			videoEl.play();
+		}
+
 		const pauseVideo = ()=> document.querySelector('video')?.pause();
-		const restartVideo = ()=> document.querySelector('video').currentTime = 0;
+
+
+		const restartVideo = ()=>
+		{
+			let startTime = getElementIndex(activeIndex)?.dataset['videoStart'] || 0;
+			document.querySelector('video').currentTime = startTime;
+		}
+
 
 
 		const addEventHandlers = ()=>
