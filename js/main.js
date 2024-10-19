@@ -66,13 +66,14 @@ import DisplayMode from "./enums/displayMode.js";
 			document.querySelector('[data-id=App]')?.dataset?.mode;
 
 
-		const initVideoTag = (url, endTime=0)=>
+		const initVideoTag = (url, startTime, endTime=0)=>
 		{
 			let el = document.querySelector('[data-id=VideoComponent]');
 			let parent = el.parentNode;
 			el.remove();
 			let vid = document.createElement('video');
 			vid.dataset.id = 'VideoComponent';
+			vid.dataset.startTime = startTime;
 			vid.dataset.videoEnd = endTime;
 			vid.innerHTML = `<source src="file:///home/media/eschware/pi_media/usb/${url}" type="video/mp4">`;
 			parent.appendChild(vid);
@@ -130,7 +131,8 @@ import DisplayMode from "./enums/displayMode.js";
 					removeVideoEndHandler();
 
 					let videoEndTime = selectedSlide.dataset['videoEnd'];
-					initVideoTag(selectedSlide.dataset['videoPath'], videoEndTime);
+					let videoStartTime = selectedSlide.dataset['videoStart'];
+					initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
 
 					addVideoEndHandler(videoEndTime);
 					playVideo(selectedSlide.dataset['videoStart']);
@@ -247,7 +249,8 @@ import DisplayMode from "./enums/displayMode.js";
 			removeVideoEndHandler();
 
 			let videoEndTime = selectedSlide.dataset['videoEnd'];
-			initVideoTag(selectedSlide.dataset['videoPath'], videoEndTime);
+			let videoStartTime = selectedSlide.dataset['videoStart'];
+			initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
 			addVideoEndHandler(videoEndTime);
 			playVideo(selectedSlide.dataset['videoStart']);
 		}
