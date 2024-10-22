@@ -34,11 +34,11 @@ import DisplayMode from "./enums/displayMode.js";
 		{
 			let carouselEl = document.querySelector('[data-id=CarouselComponent]');
 			carouselEl.innerHTML = manifest.videos.map(video=>
-				`<div data-video-path="${video.videoPath}" data-video-start=${video.startTime} data-video-end=${toSeconds(video.endTime)}>
+				`<div data-video-path="${video.videoPath}" data-video-start=${toSeconds(video.startTime)} data-video-end=${toSeconds(video.endTime)}>
 					<img
 						width="${manifest.settings.thumbnail.width}"
 						height="${manifest.settings.thumbnail.height}"
-						src="${video.thumbnailPath}"
+						src="${manifest.settings.mediaPath}/${video.thumbnailPath}"
 					>
 					<h3>${video.name}</h3>
 				</div>`
@@ -75,7 +75,7 @@ import DisplayMode from "./enums/displayMode.js";
 			vid.dataset.id = 'VideoComponent';
 			vid.dataset.startTime = startTime;
 			vid.dataset.videoEnd = endTime;
-			vid.innerHTML = `<source src="file:///home/media/eschware/pi_media/usb/${url}" type="video/mp4">`;
+			vid.innerHTML = `<source src="${manifest.settings.mediaPath}/${url}" type="video/mp4">`;
 			parent.appendChild(vid);
 			activeVideoEl = document.querySelector('video');
 		}
