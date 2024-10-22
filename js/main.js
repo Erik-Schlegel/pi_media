@@ -32,7 +32,12 @@ import DisplayMode from "./enums/displayMode.js";
 		{
 			let carouselEl = document.querySelector('[data-id=CarouselComponent]');
 			carouselEl.innerHTML = manifest.videos.map(video=>
-				`<div data-video-path="${video.videoPath}" data-video-start=${toSeconds(video.startTime)} data-video-end=${toSeconds(video.endTime)}>
+				`<div
+					data-video-path="${video.videoPath}"
+					data-video-start=${toSeconds(video.startTime)}
+					data-video-end=${toSeconds(video.endTime)}
+					data-video-simulate-bg-loop="${video.simulateBackgroundLoop}"
+				>
 					<img
 						width="${manifest.settings.thumbnail.width}"
 						height="${manifest.settings.thumbnail.height}"
@@ -81,7 +86,7 @@ import DisplayMode from "./enums/displayMode.js";
 
 		const addVideoEndHandler = (endTime)=>
 		{
-			endTime === '-1' ?
+			endTime === -1 ?
 				activeVideoEl.addEventListener('ended', handleVideoEnded):
 				activeVideoEl.addEventListener('timeupdate', handleVideoTimeUpdated);
 		}
@@ -115,6 +120,8 @@ import DisplayMode from "./enums/displayMode.js";
 		{
 			if(!activeVideoEl) return;
 			if(activeVideoEl.currentTime < activeVideoEl.dataset.videoEnd) return;
+			console.log('ct', activeVideoEl.currentTime);
+			console.log('ve', activeVideoEl.dataset.videoEnd)
 			playNextVideo()
 		}
 
@@ -164,6 +171,7 @@ import DisplayMode from "./enums/displayMode.js";
 
 		const handleRightPress = ()=>
 		{
+			console.log('rp');
 			modeBasedCall_CarouselVideo(
 				advanceSlideshow,
 				playNextVideo
@@ -251,17 +259,33 @@ import DisplayMode from "./enums/displayMode.js";
 		}
 
 
+		const getLoopedStartTime = (startTime, endTime)=>
+		{
+			let secondsSinceEpoch = Math.floor(Date.now() / 1000);
+			let loopDuration = endTime - startTime;
+			return (Number(startTime) + Math.ceil(secondsSinceEpoch % loopDuration));
+		}
+
+
 		const playNextVideo = ()=>
 		{
+			console.log('pnv');
 			advanceSlideshow();
 			let selectedSlide = getElementIndex(activeIndex);
 			removeVideoEndHandler();
 
-			let videoEndTime = selectedSlide.dataset['videoEnd'];
-			let videoStartTime = selectedSlide.dataset['videoStart'];
+			let videoEndTime = Number(selectedSlide.dataset['videoEnd']);
+			let videoStartTime = Number(selectedSlide.dataset['videoStart']);
 			initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
+
+			let startTime = selectedSlide.dataset.videoSimulateBgLoop === "true" ?
+				getLoopedStartTime(selectedSlide.dataset.videoStart, selectedSlide.dataset.videoEnd):
+				videoStartTime;
+
+			console.log('start', startTime, 'end', videoEndTime)
+
+			playVideo(startTime);
 			addVideoEndHandler(videoEndTime);
-			playVideo(selectedSlide.dataset['videoStart']);
 		}
 
 
