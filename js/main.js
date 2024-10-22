@@ -120,8 +120,6 @@ import DisplayMode from "./enums/displayMode.js";
 		{
 			if(!activeVideoEl) return;
 			if(activeVideoEl.currentTime < activeVideoEl.dataset.videoEnd) return;
-			console.log('ct', activeVideoEl.currentTime);
-			console.log('ve', activeVideoEl.dataset.videoEnd)
 			playNextVideo()
 		}
 
@@ -164,14 +162,24 @@ import DisplayMode from "./enums/displayMode.js";
 		{
 			modeBasedCall_CarouselVideo(
 				rewindSlideshow,
-				restartVideo
+				()=>
+				{
+					let startTime = Number(getElementIndex(activeIndex)?.dataset['videoStart']);
+					if((activeVideoEl.currentTime - startTime)*1000 < manifest.settings.rewindThresholdMS)
+					{
+						playPreviousVideo();
+					}
+					else
+					{
+						restartVideo();
+					}
+				}
 			);
 		}
 
 
 		const handleRightPress = ()=>
 		{
-			console.log('rp');
 			modeBasedCall_CarouselVideo(
 				advanceSlideshow,
 				playNextVideo
@@ -269,7 +277,6 @@ import DisplayMode from "./enums/displayMode.js";
 
 		const playNextVideo = ()=>
 		{
-			console.log('pnv');
 			advanceSlideshow();
 			let selectedSlide = getElementIndex(activeIndex);
 			removeVideoEndHandler();
@@ -282,12 +289,29 @@ import DisplayMode from "./enums/displayMode.js";
 				getLoopedStartTime(selectedSlide.dataset.videoStart, selectedSlide.dataset.videoEnd):
 				videoStartTime;
 
-			console.log('start', startTime, 'end', videoEndTime)
-
 			playVideo(startTime);
 			addVideoEndHandler(videoEndTime);
 		}
 
+
+
+		const playPreviousVideo = ()=>
+		{
+			rewindSlideshow()
+			let selectedSlide = getElementIndex(activeIndex);
+			removeVideoEndHandler();
+
+			let videoEndTime = Number(selectedSlide.dataset['videoEnd']);
+			let videoStartTime = Number(selectedSlide.dataset['videoStart']);
+			initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
+
+			let startTime = selectedSlide.dataset.videoSimulateBgLoop === "true" ?
+				getLoopedStartTime(selectedSlide.dataset.videoStart, selectedSlide.dataset.videoEnd):
+				videoStartTime;
+
+			playVideo(startTime);
+			addVideoEndHandler(videoEndTime);
+		}
 
 
 		const addEventHandlers = ()=>
