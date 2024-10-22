@@ -5,9 +5,7 @@ import DisplayMode from "./enums/displayMode.js";
 		let manifest = await fetch('usb/manifest.json');
 		manifest = await manifest.json();
 
-
-		let itemCount = manifest.videos.length;
-		let activeIndex = 1;
+		let activeIndex = 3;
 
 		let activeVideoEl = null;
 
@@ -175,7 +173,7 @@ import DisplayMode from "./enums/displayMode.js";
 
 		const advanceSlideshow = ()=>
 		{
-			if(activeIndex === itemCount) return;
+			// if(activeIndex === itemCount) return;
 
 			resetStyles();
 
@@ -187,17 +185,15 @@ import DisplayMode from "./enums/displayMode.js";
 			let next = getElementIndex(activeIndex+1);
 			next.classList.add('active');
 
-			if(activeIndex <= itemCount)
-			{
-				getElementIndex(++activeIndex+1)?.classList.add('next');
-			}
+			getElementIndex(activeIndex+2)?.classList.add('next');
+
+			moveFirstSlideLast();
+
 		}
 
 
 		const rewindSlideshow = ()=>
 		{
-			if(activeIndex === 1) return;
-
 			resetStyles();
 
 			//active becomes next
@@ -208,10 +204,23 @@ import DisplayMode from "./enums/displayMode.js";
 			let prev = getElementIndex(activeIndex-1);
 			prev.classList.add('active');
 
-			if(activeIndex >= 2)
-			{
-				getElementIndex(--activeIndex-1)?.classList.add('prev');
-			}
+			getElementIndex(activeIndex-2)?.classList.add('prev');
+
+			moveLastSlideFirst();
+		}
+
+
+		const moveLastSlideFirst = ()=>
+		{
+			let section = document.querySelector('section');
+			section.insertBefore(section.lastElementChild, section.firstElementChild);
+		}
+
+
+		const moveFirstSlideLast = ()=>
+		{
+			let section = document.querySelector('section');
+			section.appendChild(section.firstElementChild);
 		}
 
 
