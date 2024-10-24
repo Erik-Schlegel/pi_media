@@ -1,0 +1,3 @@
+cd /home/media/eschware/pi_media
+source venv/bin/activate
+python main.py &

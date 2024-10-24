@@ -1,3 +1,10 @@
+certifi==2024.8.30
+charset-normalizer==3.4.0
+click==8.1.7
+idna==3.10
 pychrome==0.2.4
+requests==2.32.3
+urllib3==2.2.3
 watchdog==5.0.3
 websocket-client==1.8.0
+websockets==13.1
