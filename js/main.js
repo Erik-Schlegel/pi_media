@@ -5,10 +5,19 @@ async function initApp()
 
     let manifestResponse = await fetch('usb/manifest.json');
     let manifest = await manifestResponse.json();
-
     let activeIndex = 3;
-
     let activeVideoEl = null;
+
+
+    const debounce = (func, delay) =>
+    {
+        let timeoutId;
+        return (...args) => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => func(...args), delay);
+        };
+    };
+
 
     const toSeconds = hhmmss =>
     {
@@ -25,7 +34,6 @@ async function initApp()
         getMode() === DisplayMode.CAROUSEL ?
             carouselFn() :
             videoFn();
-
 
 
     const initCarousel = () =>
@@ -121,69 +129,6 @@ async function initApp()
         if (!activeVideoEl) return;
         if (activeVideoEl.currentTime < activeVideoEl.dataset.videoEnd) return;
         playNextVideo();
-    };
-
-
-    window.handleEnterPress = function ()
-    {
-        modeBasedCall_CarouselVideo(
-            () =>
-            {
-                toggleUIMode();
-                let selectedSlide = getElementIndex(activeIndex);
-                removeVideoEndHandler();
-
-                let videoEndTime = selectedSlide.dataset['videoEnd'];
-                let videoStartTime = selectedSlide.dataset['videoStart'];
-                initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
-
-                addVideoEndHandler(videoEndTime);
-                playVideo(selectedSlide.dataset['videoStart']);
-            },
-            () => toggleVideoPlay()
-        );
-    };
-
-
-    window.handleUpPress = function ()
-    {
-        modeBasedCall_CarouselVideo(
-            () => { },
-            () =>
-            {
-                pauseVideo();
-                toggleUIMode();
-            }
-        );
-    };
-
-
-    window.handleLeftPress = function ()
-    {
-        modeBasedCall_CarouselVideo(
-            rewindSlideshow,
-            () =>
-            {
-                let startTime = Number(getElementIndex(activeIndex)?.dataset['videoStart']);
-                if ((activeVideoEl.currentTime - startTime) * 1000 < manifest.settings.rewindThresholdMS)
-                {
-                    playPreviousVideo();
-                }
-                else
-                {
-                    restartVideo();
-                }
-            }
-        );
-    };
-
-
-    window.handleRightPress = function ()
-    {
-        modeBasedCall_CarouselVideo(
-            advanceSlideshow,
-            playNextVideo
-        );
     };
 
 
@@ -295,7 +240,6 @@ async function initApp()
     };
 
 
-
     const playPreviousVideo = () =>
     {
         rewindSlideshow();
@@ -313,6 +257,81 @@ async function initApp()
         playVideo(startTime);
         addVideoEndHandler(videoEndTime);
     };
+
+
+    window.handleEnterPress = function ()
+    {
+        debounce(
+            modeBasedCall_CarouselVideo(
+                () =>
+                {
+                    toggleUIMode();
+                    let selectedSlide = getElementIndex(activeIndex);
+                    removeVideoEndHandler();
+
+                    let videoEndTime = selectedSlide.dataset['videoEnd'];
+                    let videoStartTime = selectedSlide.dataset['videoStart'];
+                    initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
+
+                    addVideoEndHandler(videoEndTime);
+                    playVideo(selectedSlide.dataset['videoStart']);
+                },
+                () => toggleVideoPlay()
+            ),
+            500
+        );
+    };
+
+
+    window.handleUpPress = function ()
+    {
+        debounce(
+            modeBasedCall_CarouselVideo(
+                () => { },
+                () =>
+                {
+                    pauseVideo();
+                    toggleUIMode();
+                }
+            ),
+            500
+        );
+    }
+
+
+    window.handleLeftPress = function ()
+    {
+        debounce(
+            modeBasedCall_CarouselVideo(
+                rewindSlideshow,
+                () =>
+                {
+                    let startTime = Number(getElementIndex(activeIndex)?.dataset['videoStart']);
+                    if ((activeVideoEl.currentTime - startTime) * 1000 < manifest.settings.rewindThresholdMS)
+                    {
+                        playPreviousVideo();
+                    }
+                    else
+                    {
+                        restartVideo();
+                    }
+                }
+            ),
+            500
+        );
+    }
+
+
+    window.handleRightPress = function ()
+    {
+        debounce(
+            modeBasedCall_CarouselVideo(
+                advanceSlideshow,
+                playNextVideo
+            ),
+            500
+        );
+    }
 
 
     const addEventHandlers = () =>
@@ -338,14 +357,11 @@ async function initApp()
     };
 
 
-    // Initialize the carousel and add event handlers
     initCarousel();
     addEventHandlers();
 
-    // Initialize the WebSocket connection
     const socket = new WebSocket('ws://localhost:8765');
 
-    // Create a promise that resolves when the WebSocket connection is established
     const socketOpenPromise = new Promise((resolve, reject) =>
     {
         socket.addEventListener('open', function (event)
@@ -363,10 +379,8 @@ async function initApp()
         });
     });
 
-    // Wait for the WebSocket connection to be established
     await socketOpenPromise;
 
-    // Set up the message handler for incoming commands
     socket.addEventListener('message', function (event)
     {
         const data = JSON.parse(event.data);
@@ -378,5 +392,4 @@ async function initApp()
 
 }
 
-// Start the application
 initApp();

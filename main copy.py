@@ -1,26 +1,57 @@
 import os
 import subprocess
-import threading
 import re
-import requests
 import json
-import time
-import websocket
+import asyncio
+import websockets
 
-subprocess.Popen([
-    'chromium-browser',
-    '--start-maximized',
-    '--start-fullscreen',
-    '--kiosk',
-    '--remote-allow-origins=*',
-    '--allow-file-access-from-files',
-    '--remote-debugging-port=9222',
-    '--user-data-dir=/tmp/pi_media_data',
-    '--autoplay-policy=no-user-gesture-required',
-    'file:///home/media/eschware/pi_media/index.html'
-])
+command_queue = asyncio.Queue()
 
-def listen_to_cec():
+
+async def handle_browser_connection(websocket, path):
+    print("Browser connected via WebSocket.")
+    try:
+        # Wait for the 'pageReady' message from the browser
+        while True:
+            message = await websocket.recv()
+            data = json.loads(message)
+            if data.get('type') == 'pageReady':
+                print("Received 'pageReady' signal from browser.")
+                break
+
+        # Start the CEC listener
+        loop = asyncio.get_event_loop()
+        loop.run_in_executor(None, listen_to_cec, loop)
+
+        # Start the coroutine that processes commands from the queue
+        await process_command_queue(websocket)
+    except websockets.exceptions.ConnectionClosed:
+        print("WebSocket connection closed by the browser.")
+    except Exception as e:
+        print(f"Exception in handle_browser_connection: {e}")
+
+
+async def process_command_queue(websocket):
+    """Coroutine that reads commands from the queue and sends them over the WebSocket."""
+    try:
+        while True:
+            command = await command_queue.get()
+            try:
+                await websocket.send(json.dumps({'type': 'command', 'command': command}))
+                print(f"Sent command to browser: {command}")
+            except websockets.exceptions.ConnectionClosed:
+                print("WebSocket connection closed while sending command.")
+                break
+            except Exception as e:
+                print(f"Error sending command to browser: {e}")
+                break
+            finally:
+                command_queue.task_done()
+    except Exception as e:
+        print(f"Exception in process_command_queue: {e}")
+
+
+def listen_to_cec(loop):
     """Function to listen to CEC commands using cec-client."""
     process = subprocess.Popen(
         ['cec-client', '-t', 'p', '-d', '8'],
@@ -30,69 +61,67 @@ def listen_to_cec():
     )
 
     # Process the output from cec-client line by line
-    while True:
-        output = process.stdout.readline()
-        if output == '' and process.poll() is not None:
-            break
+    for output in process.stdout:
         if output:
-            handle_cec_output(output.strip())
+            handle_cec_output(output.strip(), loop)
 
     process.stdout.close()
 
-def handle_cec_output(output):
+
+def handle_cec_output(output, loop):
     """Handle output received from cec-client."""
     match = re.search(r'>> \S+:44:(..)', output)
     if match:
         key_code = match.group(1)
+        command = ''
 
         if key_code == '01':
-            send_js_command("handleUpPress()")
+            print('Up button pressed')
+            command = 'handleUpPress'
         elif key_code == '03':
-            send_js_command("handleLeftPress()")
+            print('Left button pressed')
+            command = 'handleLeftPress'
         elif key_code == '04':
-            send_js_command("handleRightPress()")
+            print('Right button pressed')
+            command = 'handleRightPress'
         elif key_code == '00':
-            send_js_command("handleEnterPress()")
+            print('Enter button pressed')
+            command = 'handleEnterPress'
 
-def send_js_command(js_command):
-    """Send a JavaScript command to Chromium via remote debugging using WebSocket."""
+        if command:
+            # Schedule putting the command into the queue in the event loop
+            asyncio.run_coroutine_threadsafe(
+                command_queue.put(command),
+                loop
+            )
+
+
+def main():
+    # Launch Chromium browser with specified options
+    subprocess.Popen([
+        'chromium-browser',
+        '--start-maximized',
+        '--start-fullscreen',
+        '--kiosk',
+        '--remote-allow-origins=*',
+        '--allow-file-access-from-files',
+        '--remote-debugging-port=9222',
+        '--user-data-dir=/tmp/pi_media_data',
+        '--autoplay-policy=no-user-gesture-required',
+        'file:///home/media/eschware/pi_media/index.html'
+    ])
+
+    # Start the WebSocket server
+    start_server = websockets.serve(handle_browser_connection, 'localhost', 8765)
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(start_server)
+    print("WebSocket server started.")
+
+    # Run the event loop indefinitely
     try:
-        # Get the list of open tabs
-        response = requests.get('http://localhost:9222/json')
-        response.raise_for_status()
-        tabs = response.json()
+        loop.run_forever()
+    except KeyboardInterrupt:
+        print("Stopping the server.")
 
-        if tabs:
-            tab = tabs[0]
-            websocket_url = tab['webSocketDebuggerUrl']
-            ws = websocket.create_connection(websocket_url)
-            payload = {
-                "id": 1,
-                "method": "Runtime.evaluate",
-                "params": {
-                    "expression": js_command
-                }
-            }
-
-            ws.send(json.dumps(payload))
-            response = ws.recv()
-            ws.close()
-        else:
-            print("No tabs found in Chromium.")
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to connect to Chromium debugger: {e}")
-    except websocket.WebSocketException as e:
-        print(f"WebSocket error: {e}")
-    except Exception as e:
-        print(f"Error sending JavaScript command: {e}")
-
-# Run CEC listener in a separate thread
-cec_thread = threading.Thread(target=listen_to_cec, daemon=True)
-cec_thread.start()
-
-# Keep the main script running
-try:
-    while True:
-        time.sleep(1)
-except KeyboardInterrupt:
-    print("Stopping CEC listener.")
+if __name__ == "__main__":
+    main()

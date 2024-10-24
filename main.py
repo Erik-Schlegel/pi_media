@@ -4,14 +4,16 @@ import re
 import json
 import asyncio
 import websockets
+import signal
+import sys
 
 command_queue = asyncio.Queue()
+chromium_process = None
 
 
 async def handle_browser_connection(websocket, path):
     print("Browser connected via WebSocket.")
     try:
-        # Wait for the 'pageReady' message from the browser
         while True:
             message = await websocket.recv()
             data = json.loads(message)
@@ -19,11 +21,9 @@ async def handle_browser_connection(websocket, path):
                 print("Received 'pageReady' signal from browser.")
                 break
 
-        # Start the CEC listener
         loop = asyncio.get_event_loop()
         loop.run_in_executor(None, listen_to_cec, loop)
 
-        # Start the coroutine that processes commands from the queue
         await process_command_queue(websocket)
     except websockets.exceptions.ConnectionClosed:
         print("WebSocket connection closed by the browser.")
@@ -53,19 +53,21 @@ async def process_command_queue(websocket):
 
 def listen_to_cec(loop):
     """Function to listen to CEC commands using cec-client."""
-    process = subprocess.Popen(
-        ['cec-client', '-t', 'p', '-d', '8'],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        universal_newlines=True
-    )
+    try:
+        process = subprocess.Popen(
+            ['cec-client', '-t', 'p', '-d', '8'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True
+        )
 
-    # Process the output from cec-client line by line
-    for output in process.stdout:
-        if output:
-            handle_cec_output(output.strip(), loop)
+        for output in process.stdout:
+            if output:
+                handle_cec_output(output.strip(), loop)
 
-    process.stdout.close()
+        process.stdout.close()
+    except Exception as e:
+        print(f"Exception in listen_to_cec: {e}")
 
 
 def handle_cec_output(output, loop):
@@ -89,39 +91,72 @@ def handle_cec_output(output, loop):
             command = 'handleEnterPress'
 
         if command:
-            # Schedule putting the command into the queue in the event loop
-            asyncio.run_coroutine_threadsafe(
+            future = asyncio.run_coroutine_threadsafe(
                 command_queue.put(command),
                 loop
             )
+            try:
+                future.result()
+            except Exception as e:
+                print(f"Error adding command to queue: {e}")
 
 
-def main():
-    # Launch Chromium browser with specified options
-    subprocess.Popen([
+def launch_chromium():
+    """Launch Chromium browser with specified options."""
+    global chromium_process
+    chromium_process = subprocess.Popen([
         'chromium-browser',
         '--start-maximized',
         '--start-fullscreen',
         '--kiosk',
         '--remote-allow-origins=*',
         '--allow-file-access-from-files',
-        '--remote-debugging-port=9222',
+        '--noerrdialogs',
+        '--disable-infobars',
+        '--disable-session-crashed-bubble',
         '--user-data-dir=/tmp/pi_media_data',
         '--autoplay-policy=no-user-gesture-required',
         'file:///home/media/eschware/pi_media/index.html'
     ])
+    print("Chromium launched.")
 
-    # Start the WebSocket server
+
+def terminate_chromium():
+    """Terminate the Chromium process if it's running."""
+    global chromium_process
+    if chromium_process and chromium_process.poll() is None:
+        print("Terminating Chromium...")
+        chromium_process.terminate()
+        chromium_process.wait()
+        print("Chromium terminated.")
+
+
+def signal_handler(sig, frame):
+    print(f"Signal {sig} received. Shutting down...")
+    terminate_chromium()
+    loop = asyncio.get_event_loop()
+    loop.stop()
+    sys.exit(0)
+
+
+def main():
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+
+    launch_chromium()
+
     start_server = websockets.serve(handle_browser_connection, 'localhost', 8765)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(start_server)
     print("WebSocket server started.")
 
-    # Run the event loop indefinitely
     try:
         loop.run_forever()
     except KeyboardInterrupt:
-        print("Stopping the server.")
+        print("KeyboardInterrupt received. Exiting...")
+    finally:
+        terminate_chromium()
+        loop.close()
 
 if __name__ == "__main__":
     main()
