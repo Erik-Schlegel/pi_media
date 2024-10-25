@@ -266,91 +266,78 @@ async function initApp()
     };
 
 
-    window.handleEnterPress = function ()
+    window.handleEnterPress = throttle(()=>
     {
-        throttle(
-            ()=>
+        modeBasedCall_CarouselVideo(
+            () =>
             {
-                modeBasedCall_CarouselVideo(
-                    () =>
-                    {
-                        toggleUIMode();
-                        let selectedSlide = getElementIndex(activeIndex);
-                        removeVideoEndHandler();
+                toggleUIMode();
+                let selectedSlide = getElementIndex(activeIndex);
+                removeVideoEndHandler();
 
-                        let videoEndTime = selectedSlide.dataset['videoEnd'];
-                        let videoStartTime = selectedSlide.dataset['videoStart'];
-                        initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
+                let videoEndTime = selectedSlide.dataset['videoEnd'];
+                let videoStartTime = selectedSlide.dataset['videoStart'];
+                initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
 
-                        addVideoEndHandler(videoEndTime);
-                        playVideo(selectedSlide.dataset['videoStart']);
-                    },
-                    () => toggleVideoPlay()
-                )
+                addVideoEndHandler(videoEndTime);
+                playVideo(selectedSlide.dataset['videoStart']);
             },
-            THROTTLE_SPEED
-        );
-    };
+            () => toggleVideoPlay()
+        )
+    }, THROTTLE_SPEED);
 
 
-    window.handleUpPress = function ()
-    {
-        throttle(
-            ()=>
-            {
-                modeBasedCall_CarouselVideo(
-                    () => { },
-                    () =>
+    window.handleUpPress = throttle(
+        ()=>
+        {
+            modeBasedCall_CarouselVideo(
+                () => { },
+                () =>
+                {
+                    pauseVideo();
+                    toggleUIMode();
+                }
+            )
+        },
+        THROTTLE_SPEED
+    );
+
+
+    window.handleLeftPress = throttle(
+        ()=>
+        {
+            modeBasedCall_CarouselVideo(
+                rewindSlideshow,
+                () =>
+                {
+                    let startTime = Number(getElementIndex(activeIndex)?.dataset['videoStart']);
+                    if ((activeVideoEl.currentTime - startTime) * 1000 < manifest.settings.rewindThresholdMS)
                     {
-                        pauseVideo();
-                        toggleUIMode();
+                        playPreviousVideo();
                     }
-                )
-            },
-            THROTTLE_SPEED
-        );
-    }
-
-
-    window.handleLeftPress = function ()
-    {
-        throttle(
-            ()=>
-            {
-                modeBasedCall_CarouselVideo(
-                    rewindSlideshow,
-                    () =>
+                    else
                     {
-                        let startTime = Number(getElementIndex(activeIndex)?.dataset['videoStart']);
-                        if ((activeVideoEl.currentTime - startTime) * 1000 < manifest.settings.rewindThresholdMS)
-                        {
-                            playPreviousVideo();
-                        }
-                        else
-                        {
-                            restartVideo();
-                        }
+                        restartVideo();
                     }
-                )
-            },
-            THROTTLE_SPEED
-        );
-    }
+                }
+            )
+        },
+        THROTTLE_SPEED
+    );
 
 
-    window.handleRightPress = function ()
-    {
-        throttle(
-            ()=>
-            {
-                modeBasedCall_CarouselVideo(
-                    advanceSlideshow,
-                    playNextVideo
-                )
-            },
-            THROTTLE_SPEED
-        );
-    }
+
+    window.handleRightPress = throttle(
+        ()=>
+        {
+            modeBasedCall_CarouselVideo(
+                advanceSlideshow,
+                playNextVideo
+            )
+        },
+        THROTTLE_SPEED
+    );
+
 
 
     const addEventHandlers = () =>
