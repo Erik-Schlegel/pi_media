@@ -7,16 +7,23 @@ async function initApp()
     let manifest = await manifestResponse.json();
     let activeIndex = 3;
     let activeVideoEl = null;
+    const THROTTLE_SPEED = 500;
 
 
-    const debounce = (func, delay) =>
+    const throttle = (callback, limit) =>
     {
-        let timeoutId;
-        return (...args) => {
-          clearTimeout(timeoutId);
-          timeoutId = setTimeout(() => func(...args), delay);
-        };
-    };
+        var waiting = false;
+        return ()=>
+        {
+            if(waiting) return;
+            callback.apply(this, arguments);
+            waiting = true;
+            setTimeout(
+                ()=> waiting = false,
+                limit
+            );
+        }
+    }
 
 
     const toSeconds = hhmmss =>
@@ -261,75 +268,87 @@ async function initApp()
 
     window.handleEnterPress = function ()
     {
-        debounce(
-            modeBasedCall_CarouselVideo(
-                () =>
-                {
-                    toggleUIMode();
-                    let selectedSlide = getElementIndex(activeIndex);
-                    removeVideoEndHandler();
+        throttle(
+            ()=>
+            {
+                modeBasedCall_CarouselVideo(
+                    () =>
+                    {
+                        toggleUIMode();
+                        let selectedSlide = getElementIndex(activeIndex);
+                        removeVideoEndHandler();
 
-                    let videoEndTime = selectedSlide.dataset['videoEnd'];
-                    let videoStartTime = selectedSlide.dataset['videoStart'];
-                    initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
+                        let videoEndTime = selectedSlide.dataset['videoEnd'];
+                        let videoStartTime = selectedSlide.dataset['videoStart'];
+                        initVideoTag(selectedSlide.dataset['videoPath'], videoStartTime, videoEndTime);
 
-                    addVideoEndHandler(videoEndTime);
-                    playVideo(selectedSlide.dataset['videoStart']);
-                },
-                () => toggleVideoPlay()
-            ),
-            500
+                        addVideoEndHandler(videoEndTime);
+                        playVideo(selectedSlide.dataset['videoStart']);
+                    },
+                    () => toggleVideoPlay()
+                )
+            },
+            THROTTLE_SPEED
         );
     };
 
 
     window.handleUpPress = function ()
     {
-        debounce(
-            modeBasedCall_CarouselVideo(
-                () => { },
-                () =>
-                {
-                    pauseVideo();
-                    toggleUIMode();
-                }
-            ),
-            500
+        throttle(
+            ()=>
+            {
+                modeBasedCall_CarouselVideo(
+                    () => { },
+                    () =>
+                    {
+                        pauseVideo();
+                        toggleUIMode();
+                    }
+                )
+            },
+            THROTTLE_SPEED
         );
     }
 
 
     window.handleLeftPress = function ()
     {
-        debounce(
-            modeBasedCall_CarouselVideo(
-                rewindSlideshow,
-                () =>
-                {
-                    let startTime = Number(getElementIndex(activeIndex)?.dataset['videoStart']);
-                    if ((activeVideoEl.currentTime - startTime) * 1000 < manifest.settings.rewindThresholdMS)
+        throttle(
+            ()=>
+            {
+                modeBasedCall_CarouselVideo(
+                    rewindSlideshow,
+                    () =>
                     {
-                        playPreviousVideo();
+                        let startTime = Number(getElementIndex(activeIndex)?.dataset['videoStart']);
+                        if ((activeVideoEl.currentTime - startTime) * 1000 < manifest.settings.rewindThresholdMS)
+                        {
+                            playPreviousVideo();
+                        }
+                        else
+                        {
+                            restartVideo();
+                        }
                     }
-                    else
-                    {
-                        restartVideo();
-                    }
-                }
-            ),
-            500
+                )
+            },
+            THROTTLE_SPEED
         );
     }
 
 
     window.handleRightPress = function ()
     {
-        debounce(
-            modeBasedCall_CarouselVideo(
-                advanceSlideshow,
-                playNextVideo
-            ),
-            500
+        throttle(
+            ()=>
+            {
+                modeBasedCall_CarouselVideo(
+                    advanceSlideshow,
+                    playNextVideo
+                )
+            },
+            THROTTLE_SPEED
         );
     }
 
@@ -360,7 +379,9 @@ async function initApp()
     initCarousel();
     addEventHandlers();
 
+
     const socket = new WebSocket('ws://localhost:8765');
+
 
     const socketOpenPromise = new Promise((resolve, reject) =>
     {
@@ -379,7 +400,9 @@ async function initApp()
         });
     });
 
+
     await socketOpenPromise;
+
 
     socket.addEventListener('message', function (event)
     {
@@ -389,6 +412,7 @@ async function initApp()
             window[data.command]();
         }
     });
+
 
 }
 

@@ -33,20 +33,12 @@
             "simulateBackgroundLoop": true
         },
         {
-            "name": "Family Feud",
-            "videoPath": "videos/family-feud.mp4",
-            "thumbnailPath": "thumbnails/familyfeud.jpg",
-            "startTime": "0:0:0",
-            "endTime": "0:19:47",
-            "simulateBackgroundLoop": true
-        },
-        {
             "name": "Old Men",
             "videoPath": "videos/fullhouse-old-men.mp4",
             "thumbnailPath": "thumbnails/fullhouse-old-men.jpg",
             "startTime": "0:0:0",
             "endTime": "0:22:28",
-            "simulateBackgroundLoop": true
+            "simulateBackgroundLoop": false
         },
         {
             "name": "Car In The Kitchen",
@@ -54,6 +46,22 @@
             "thumbnailPath": "thumbnails/fullhouse-car-kitchen.jpg",
             "startTime": "0:0:0",
             "endTime": "0:22:27",
+            "simulateBackgroundLoop": false
+        },
+        {
+            "name": "Sillyville",
+            "videoPath": "videos/wee-sing-sillyville.mp4",
+            "thumbnailPath": "thumbnails/wee-sing-sillyville.jpg",
+            "startTime": "0:0:15.5",
+            "endTime": "0:56:33",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Family Feud",
+            "videoPath": "videos/family-feud.mp4",
+            "thumbnailPath": "thumbnails/familyfeud.jpg",
+            "startTime": "0:0:0",
+            "endTime": "0:19:47",
             "simulateBackgroundLoop": true
         },
         {
@@ -110,14 +118,6 @@
             "thumbnailPath": "thumbnails/wee-sing-grandpa.jpg",
             "startTime": "0:2:45",
             "endTime": "0:54:34",
-            "simulateBackgroundLoop": true
-        },
-        {
-            "name": "Sillyville",
-            "videoPath": "videos/wee-sing-sillyville.mp4",
-            "thumbnailPath": "thumbnails/wee-sing-sillyville.jpg",
-            "startTime": "0:0:15.5",
-            "endTime": "0:56:33",
             "simulateBackgroundLoop": true
         },
         {
