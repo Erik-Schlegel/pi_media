@@ -9,11 +9,11 @@
     },
     "videos": [
         {
-            "name": "Christmas Calamity",
-            "videoPath": "videos/christmas-calamity.mp4",
-            "thumbnailPath": "thumbnails/psalty-calamity.jpg",
+            "name": "Wheel of Fortune!",
+            "videoPath": "videos/wheel-fortune.mp4",
+            "thumbnailPath": "thumbnails/wheel-of-fortune.jpg",
             "startTime": "0:0:0",
-            "endTime": "0:42:43",
+            "endTime": "0:20:0",
             "simulateBackgroundLoop": true
         },
         {
@@ -57,22 +57,6 @@
             "simulateBackgroundLoop": true
         },
         {
-            "name": "Family Feud",
-            "videoPath": "videos/family-feud.mp4",
-            "thumbnailPath": "thumbnails/familyfeud.jpg",
-            "startTime": "0:0:0",
-            "endTime": "0:19:47",
-            "simulateBackgroundLoop": true
-        },
-        {
-            "name": "Jeopardy",
-            "videoPath": "videos/jeopardy-record.mp4",
-            "thumbnailPath": "thumbnails/jeopardy-trebek.jpg",
-            "startTime": "0:0:9.25",
-            "endTime": "0:19:29",
-            "simulateBackgroundLoop": true
-        },
-        {
             "name": "Baseball",
             "videoPath": "videos/perfect-strangers-baseball.mp4",
             "thumbnailPath": "thumbnails/perfect-strangers-baseball.jpg",
@@ -89,11 +73,11 @@
             "simulateBackgroundLoop": true
         },
         {
-            "name": "The Price is Right",
-            "videoPath": "videos/price-right.mp4",
-            "thumbnailPath": "thumbnails/price-is-right.jpg",
-            "startTime": "0:0:2",
-            "endTime": "0:38:0",
+            "name": "Christmas Calamity",
+            "videoPath": "videos/christmas-calamity.mp4",
+            "thumbnailPath": "thumbnails/psalty-calamity.jpg",
+            "startTime": "0:0:0",
+            "endTime": "0:42:43",
             "simulateBackgroundLoop": true
         },
         {
@@ -121,19 +105,27 @@
             "simulateBackgroundLoop": true
         },
         {
-            "name": "Jeopardy Teens",
-            "videoPath": "videos/jeopardy-teen-tourney-1989.mp4",
-            "thumbnailPath": "thumbnails/jeopardy-1990.jpg",
-            "startTime": "0:0:0",
-            "endTime": "0:19:39",
+            "name": "The Price is Right",
+            "videoPath": "videos/price-right.mp4",
+            "thumbnailPath": "thumbnails/price-is-right.jpg",
+            "startTime": "0:0:2",
+            "endTime": "0:38:0",
             "simulateBackgroundLoop": true
         },
         {
-            "name": "Wheel of Fortune!",
-            "videoPath": "videos/wheel-fortune.mp4",
-            "thumbnailPath": "thumbnails/wheel-of-fortune.jpg",
+            "name": "Family Feud",
+            "videoPath": "videos/family-feud.mp4",
+            "thumbnailPath": "thumbnails/familyfeud.jpg",
             "startTime": "0:0:0",
-            "endTime": "0:20:0",
+            "endTime": "0:19:47",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Jeopardy",
+            "videoPath": "videos/jeopardy-record.mp4",
+            "thumbnailPath": "thumbnails/jeopardy-trebek.jpg",
+            "startTime": "0:0:9.25",
+            "endTime": "0:19:29",
             "simulateBackgroundLoop": true
         }
     ]
