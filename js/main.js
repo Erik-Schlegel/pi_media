@@ -3,11 +3,15 @@ import DisplayMode from "./enums/displayMode.js";
 async function initApp()
 {
 
+	const carouselElSelector = '[data-id=CarouselComponent]';
+	const videoElSelector = '[data-id=VideoComponent]';
+	const THROTTLE_SPEED = 500;
+
 	let manifestResponse = await fetch('usb/manifest.json');
 	let manifest = await manifestResponse.json();
 	let activeIndex = 3;
 	let activeVideoEl = null;
-	const THROTTLE_SPEED = 500;
+	let _audioContext = null;
 
 
 	const throttle = (callback, limit) =>
@@ -45,31 +49,34 @@ async function initApp()
 
 	const initAudioCompressor = ()=>
 	{
-		const videoElement = document.querySelector('video');
+		//This should only run once per page load. Else, we get fun memory leaks.
+		if(_audioContext) return;
 
-		const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-		const source = audioContext.createMediaElementSource(videoElement);
-		const gainNode = audioContext.createGain();
-		const compressor = audioContext.createDynamicsCompressor();
+		const videoEl = document.querySelector(videoElSelector);
+
+		_audioContext = new (window.AudioContext || window.webkitAudioContext)();
+		const source = _audioContext.createMediaElementSource(videoEl);
+		const gainNode = _audioContext.createGain();
+		const compressor = _audioContext.createDynamicsCompressor();
 
 
-		compressor.threshold.setValueAtTime(-50, audioContext.currentTime); // Tamp down loud segments (anything above 50db)
-		compressor.knee.setValueAtTime(8, audioContext.currentTime);       // Smooth transition into compression; higher = smoother
-		compressor.ratio.setValueAtTime(6, audioContext.currentTime);       // Moderate compression ratio 6:1 (for every n decibels above threshold, 1 makes it through)
-		compressor.attack.setValueAtTime(0.005, audioContext.currentTime);   // Quick response to loud sounds
-		compressor.release.setValueAtTime(0.1, audioContext.currentTime);   // Smooth release to avoid abrupt volume changes
+		compressor.threshold.setValueAtTime(-50, _audioContext.currentTime); // Tamp down loud segments (anything above 50db)
+		compressor.knee.setValueAtTime(8, _audioContext.currentTime);       // Smooth transition into compression; higher = smoother
+		compressor.ratio.setValueAtTime(6, _audioContext.currentTime);       // Moderate compression ratio 6:1 (for every n decibels above threshold, 1 makes it through)
+		compressor.attack.setValueAtTime(0.005, _audioContext.currentTime);   // Quick response to loud sounds
+		compressor.release.setValueAtTime(0.1, _audioContext.currentTime);   // Smooth release to avoid abrupt volume changes
 
 		// gainNode.gain.value = 1;
 
 		source.connect(compressor);
 		compressor.connect(gainNode);
-		gainNode.connect(audioContext.destination);
+		gainNode.connect(_audioContext.destination);
 	}
 
 
 	const initCarousel = () =>
 	{
-		let carouselEl = document.querySelector('[data-id=CarouselComponent]');
+		let carouselEl = document.querySelector(carouselElSelector);
 		carouselEl.innerHTML = manifest.videos.map(video =>
 			`<div
 				data-video-path="${video.videoPath}"
@@ -110,16 +117,27 @@ async function initApp()
 
 	const initVideoTag = (url, startTime, endTime = 0) =>
 	{
-		let el = document.querySelector('[data-id=VideoComponent]');
-		let parent = el.parentNode;
-		el.remove();
-		let vid = document.createElement('video');
-		vid.dataset.id = 'VideoComponent';
-		vid.dataset.startTime = startTime;
-		vid.dataset.videoEnd = endTime;
-		vid.innerHTML = `<source src="${manifest.settings.mediaPath}/${url}" type="video/mp4">`;
-		parent.appendChild(vid);
-		activeVideoEl = document.querySelector('video');
+		let videoEl = document.querySelector(videoElSelector);
+
+		// Clean up the existing element
+		videoEl.pause();
+		videoEl.removeAttribute('src');
+		videoEl.load(); // Forces release of media resources
+
+		while (videoEl.firstChild)
+			videoEl.removeChild(videoEl.firstChild);
+
+		videoEl.dataset.startTime = startTime;
+		videoEl.dataset.videoEnd = endTime;
+
+		const source = document.createElement('source');
+		source.src = `${manifest.settings.mediaPath}/${url}`;
+		source.type = 'video/mp4';
+		videoEl.appendChild(source);
+
+		activeVideoEl = videoEl;
+
+		initAudioCompressor();
 	};
 
 
@@ -226,7 +244,6 @@ async function initApp()
 
 	const playVideo = (startTime = 0) =>
 	{
-		initAudioCompressor();
 		let videoEl = document.querySelector('video');
 		if (!videoEl) return;
 		videoEl.currentTime = startTime;
