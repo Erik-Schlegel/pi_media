@@ -7,7 +7,7 @@ async function initApp()
 	const videoElSelector = '[data-id=VideoComponent]';
 	const THROTTLE_SPEED = 500;
 
-	let manifestResponse = await fetch('usb/manifest.json');
+	let manifestResponse = await fetch('resources/manifest.json');
 	let manifest = await manifestResponse.json();
 	let activeIndex = 3;
 	let activeVideoEl = null;

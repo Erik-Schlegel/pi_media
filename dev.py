@@ -34,7 +34,7 @@ class RestartHandler(FileSystemEventHandler):
                 '--allow-file-access-from-files',
                 '--user-data-dir=/tmp/pi_media_data',
                 '--remote-debugging-port=9222',
-                'file:///home/esch/eschware/pi_media/dev_index.html'
+                'file:///home/media/eschware/pi_media/dev_index.html'
 
             ])
             time.sleep(2)
