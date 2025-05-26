@@ -2,6 +2,7 @@ import DisplayMode from "./enums/displayMode.js";
 
 async function initApp()
 {
+	console.log('initApp');
 
 	const carouselElSelector = '[data-id=CarouselComponent]';
 	const videoElSelector = '[data-id=VideoComponent]';
@@ -16,6 +17,7 @@ async function initApp()
 
 	const throttle = (callback, limit) =>
 	{
+		console.log('throttle');
 		var waiting = false;
 		return ()=>
 		{
@@ -32,6 +34,7 @@ async function initApp()
 
 	const toSeconds = hhmmss =>
 	{
+		console.log('toSeconds');
 		if(hhmmss === -1) return hhmmss;
 
 		let splitTime = hhmmss.split(':');
@@ -42,13 +45,18 @@ async function initApp()
 
 
 	const modeBasedCall_CarouselVideo = (carouselFn, videoFn) =>
+	{
+		console.log('modeBasedCall_CarouselVideo', carouselFn, videoFn);
 		getMode() === DisplayMode.CAROUSEL ?
 			carouselFn() :
 			videoFn();
+	}
 
 
 	const initAudioCompressor = ()=>
 	{
+		console.log('initAudioCompressor');
+
 		//This should only run once per page load. Else, we get fun memory leaks.
 		if(_audioContext) return;
 
@@ -76,6 +84,8 @@ async function initApp()
 
 	const initCarousel = () =>
 	{
+		console.log('initCarousel');
+
 		let carouselEl = document.querySelector(carouselElSelector);
 		carouselEl.innerHTML = manifest.videos.map(video =>
 			`<div
@@ -99,24 +109,29 @@ async function initApp()
 
 	const getElementIndex = index =>
 	{
+		console.log('getElementIndex');
 		return document.querySelector(`section > div:nth-of-type(${index})`);
 	};
 
 
 	const resetStyles = () =>
 	{
+		console.log('resetStyles');
 		document.querySelector('.prev')?.classList.remove('prev');
 		document.querySelector('.active')?.classList.remove('active');
 		document.querySelector('.next')?.classList.remove('next');
 	};
 
 
-	const getMode = () =>
-		document.querySelector('[data-id=App]')?.dataset?.mode;
+	const getMode = () => {
+		console.log('getMode');
+		return document.querySelector('[data-id=App]')?.dataset?.mode;
+	}
 
 
 	const initVideoTag = (url, startTime, endTime = 0) =>
 	{
+		console.log('initVideoTag');
 		let videoEl = document.querySelector(videoElSelector);
 
 		// Clean up the existing element
@@ -143,6 +158,8 @@ async function initApp()
 
 	const addVideoEndHandler = (endTime) =>
 	{
+		console.log('addVideoEndHandler');
+
 		endTime === -1 ?
 			activeVideoEl.addEventListener('ended', handleVideoEnded) :
 			activeVideoEl.addEventListener('timeupdate', handleVideoTimeUpdated);
@@ -151,6 +168,8 @@ async function initApp()
 
 	const removeVideoEndHandler = () =>
 	{
+		console.log('removeVideoEndHandler');
+
 		activeVideoEl?.removeEventListener('timeupdate', handleVideoTimeUpdated);
 		activeVideoEl?.removeEventListener('ended', handleVideoEnded);
 	};
@@ -158,6 +177,8 @@ async function initApp()
 
 	const toggleUIMode = () =>
 	{
+		console.log('toggleUIMode');
+
 		let el = document.querySelector('[data-id=App]');
 		modeBasedCall_CarouselVideo(
 			() => el.dataset.mode = DisplayMode.VIDEO,
@@ -168,6 +189,8 @@ async function initApp()
 
 	const handleVideoEnded = () =>
 	{
+		console.log('handleVideoEnded');
+
 		if (!activeVideoEl) return;
 		playNextVideo();
 	};
@@ -175,6 +198,7 @@ async function initApp()
 
 	const handleVideoTimeUpdated = () =>
 	{
+		// console.log('handleVideoTimeUpdated');
 		if (!activeVideoEl) return;
 		if (activeVideoEl.currentTime < activeVideoEl.dataset.videoEnd) return;
 		playNextVideo();
@@ -183,8 +207,7 @@ async function initApp()
 
 	const advanceSlideshow = () =>
 	{
-		// if(activeIndex === itemCount) return;
-
+		console.log('advanceSlideshow');
 		resetStyles();
 
 		// active becomes previous
@@ -196,14 +219,13 @@ async function initApp()
 		next.classList.add('active');
 
 		getElementIndex(activeIndex + 2)?.classList.add('next');
-
 		moveFirstSlideLast();
-
 	};
 
 
 	const rewindSlideshow = () =>
 	{
+		console.log('rewindSlideshow');
 		resetStyles();
 
 		// active becomes next
@@ -222,6 +244,8 @@ async function initApp()
 
 	const moveLastSlideFirst = () =>
 	{
+		console.log('moveLastSlideFirst');
+
 		let section = document.querySelector('section');
 		section.insertBefore(section.lastElementChild, section.firstElementChild);
 	};
@@ -229,6 +253,7 @@ async function initApp()
 
 	const moveFirstSlideLast = () =>
 	{
+		console.log('moveFirstSlideLast');
 		let section = document.querySelector('section');
 		section.appendChild(section.firstElementChild);
 	};
@@ -236,26 +261,42 @@ async function initApp()
 
 	const toggleVideoPlay = () =>
 	{
+		console.log('toggleVideoPlay');
 		const video = document.querySelector('video');
 		if (!video) return;
 		video.paused ? video.play() : video.pause();
 	};
 
 
-	const playVideo = (startTime = 0) =>
+	const playVideo = async (startTime = 0) =>
 	{
+		console.log('playVideo');
 		let videoEl = document.querySelector('video');
 		if (!videoEl) return;
 		videoEl.currentTime = startTime;
-		videoEl.play();
+		try
+		{
+			await videoEl.play();
+		}
+		catch(ex)
+		{
+			//Interesting highly intermittent error. Testing if simple catch will address.
+			//https://developer.chrome.com/blog/play-request-was-interrupted
+
+		}
 	};
 
 
-	const pauseVideo = () => document.querySelector('video')?.pause();
+	const pauseVideo = () =>
+	{
+		console.log('pauseVideo');
+		document.querySelector('video')?.pause();
+	}
 
 
 	const restartVideo = () =>
 	{
+		console.log('restartVideo');
 		let startTime = getElementIndex(activeIndex)?.dataset['videoStart'] || 0;
 		document.querySelector('video').currentTime = startTime;
 	};
@@ -263,6 +304,7 @@ async function initApp()
 
 	const getLoopedStartTime = (startTime, endTime) =>
 	{
+		console.log('getLoopedStartTime');
 		let secondsSinceEpoch = Math.floor(Date.now() / 1000);
 		let loopDuration = endTime - startTime;
 		return (Number(startTime) + Math.ceil(secondsSinceEpoch % loopDuration));
@@ -271,6 +313,7 @@ async function initApp()
 
 	const playNextVideo = () =>
 	{
+		console.log('playNextVideo');
 		advanceSlideshow();
 		let selectedSlide = getElementIndex(activeIndex);
 		removeVideoEndHandler();
@@ -290,6 +333,7 @@ async function initApp()
 
 	const playPreviousVideo = () =>
 	{
+		console.log('playPreviousVideo');
 		rewindSlideshow();
 		let selectedSlide = getElementIndex(activeIndex);
 		removeVideoEndHandler();
@@ -309,6 +353,7 @@ async function initApp()
 
 	window.handleEnterPress = throttle(()=>
 	{
+		console.log('handleEnterPress');
 		modeBasedCall_CarouselVideo(
 			() =>
 			{
@@ -331,6 +376,7 @@ async function initApp()
 	window.handleUpPress = throttle(
 		()=>
 		{
+			console.log('handleUpPress');
 			modeBasedCall_CarouselVideo(
 				() => { },
 				() =>
@@ -347,6 +393,7 @@ async function initApp()
 	window.handleLeftPress = throttle(
 		()=>
 		{
+			console.log('handleLeftPress');
 			modeBasedCall_CarouselVideo(
 				rewindSlideshow,
 				() =>
@@ -371,6 +418,7 @@ async function initApp()
 	window.handleRightPress = throttle(
 		()=>
 		{
+			console.log('handleRightPress');
 			modeBasedCall_CarouselVideo(
 				advanceSlideshow,
 				playNextVideo
@@ -383,6 +431,7 @@ async function initApp()
 
 	const addEventHandlers = () =>
 	{
+		console.log('addEventHandlers');
 		document.addEventListener('keyup', e =>
 		{
 			if (
@@ -413,6 +462,8 @@ async function initApp()
 
 	const socketOpenPromise = new Promise((resolve, reject) =>
 	{
+		console.log('socketOpenPromise');
+
 		socket.addEventListener('open', function (event)
 		{
 			console.log('WebSocket connection established.');
@@ -434,6 +485,7 @@ async function initApp()
 
 	socket.addEventListener('message', function (event)
 	{
+		console.log('socketEventListener');
 		const data = JSON.parse(event.data);
 		if (data.type === 'command' && typeof window[data.command] === 'function')
 		{

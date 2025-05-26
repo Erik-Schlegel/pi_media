@@ -34,10 +34,21 @@ class RestartHandler(FileSystemEventHandler):
                 '--allow-file-access-from-files',
                 '--user-data-dir=/tmp/pi_media_data',
                 '--remote-debugging-port=9222',
-                'file:///home/media/eschware/pi_media/dev_index.html'
-
+                'file:///home/erik/eschware/pi_media/dev_index.html'
             ])
-            time.sleep(2)
+            for _ in range(20):
+                time.sleep(0.5)
+                try:
+                    output = subprocess.check_output(['wmctrl', '-lx']).decode()
+                    for line in output.splitlines():
+                        if '.Code' in line and 'Chromium' in line:
+                            win_id = line.split()[0]
+                            subprocess.run(['wmctrl', '-i', '-r', win_id, '-t', '2'])
+                            return
+                except subprocess.CalledProcessError:
+                    continue
+
+        print("Chromium window not found")
 
 
     def reload_page(self):

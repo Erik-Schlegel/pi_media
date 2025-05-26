@@ -1,93 +1,61 @@
 {
-	"settings": {
-		"mediaPath": "file:///home/media/eschware/pi_media/resources",
-		"rewindThresholdMS": 5000,
-		"thumbnail": {
-			"width": 1500,
-			"height": 845
-		}
-	},
-	"videos": [
+    "settings": {
+        "mediaPath": "file:///home/erik/eschware/pi_media/resources",
+        "rewindThresholdMS": 5000,
+        "thumbnail": {
+            "width": 1500,
+            "height": 845
+        }
+    },
+    "videos": [
 		{
-			"name": "Jose Fernandez Homerun",
-			"videoPath": "videos/jose-fernandez-homerun.mp4",
-			"thumbnailPath": "thumbnails/jose-fernandez.jpg",
-			"startTime": "0:0:0",
-			"endTime": "0:3:16",
-			"simulateBackgroundLoop": true
-		},
+            "name": "Donut Man Camp Harmony",
+            "videoPath": "videos/donut-man-camp.mp4",
+            "thumbnailPath": "thumbnails/donut-man.jpg",
+            "startTime": "0:0:34",
+            "endTime": "0:29:28",
+            "simulateBackgroundLoop": true
+        },
+		{
+            "name": "Jose Fernandez Homerun",
+            "videoPath": "videos/jose-fernandez-homerun.mp4",
+            "thumbnailPath": "thumbnails/donut-man.jpg",
+            "startTime": "0:0:0",
+            "endTime": "0:3:16",
+            "simulateBackgroundLoop": true
+        },
 		{
 			"name": "Praise In Motion 1",
 			"videoPath": "videos/praise-in-motion-1.mp4",
-			"thumbnailPath": "thumbnails/praise-in-motion-1.jpg",
+			"thumbnailPath": "thumbnails/donut-man.jpg",
 			"startTime": "0:0:27",
 			"endTime": "0:28:51",
 			"simulateBackgroundLoop": false
 		},
-		{
-			"name": "Christmas Calamity",
-			"videoPath": "videos/christmas-calamity.mp4",
-			"thumbnailPath": "thumbnails/psalty-calamity.jpg",
-			"startTime": "0:0:0",
-			"endTime": "0:42:43",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Colby's Missing Memory",
-			"videoPath": "videos/colby-missing-mem.mp4",
-			"thumbnailPath": "thumbnails/colby.jpg",
-			"startTime": "0:0:5",
-			"endTime": "0:48:56",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Donut Man Baseball",
-			"videoPath": "videos/donut-man.mp4",
-			"thumbnailPath": "thumbnails/donut-man.jpg",
-			"startTime": "0:0:0",
-			"endTime": "0:26:37",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Praise In Motion 2",
-			"videoPath": "videos/praise-in-motion-2.mp4",
-			"thumbnailPath": "thumbnails/donut-man.jpg",
-			"startTime": "0:0:23",
-			"endTime": "0:25:35",
-			"simulateBackgroundLoop": false
-		},
-		{
-			"name": "Old Men",
-			"videoPath": "videos/fullhouse-old-men.mp4",
-			"thumbnailPath": "thumbnails/fullhouse-old-men.jpg",
-			"startTime": "0:0:0",
-			"endTime": "0:22:28",
-			"simulateBackgroundLoop": false
-		},
-		{
-			"name": "Car In The Kitchen",
-			"videoPath": "videos/fullhouse-car-in-kitchen.mp4",
-			"thumbnailPath": "thumbnails/fullhouse-car-kitchen.jpg",
-			"startTime": "0:0:0",
-			"endTime": "0:22:27",
-			"simulateBackgroundLoop": false
-		},
-		{
-			"name": "Sillyville",
-			"videoPath": "videos/wee-sing-sillyville.mp4",
-			"thumbnailPath": "thumbnails/wee-sing-sillyville.jpg",
-			"startTime": "0:0:15",
-			"endTime": "0:56:33",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Praise In Motion 3",
-			"videoPath": "videos/praise-in-motion-3.mp4",
-			"thumbnailPath": "thumbnails/donut-man.jpg",
-			"startTime": "0:0:22",
-			"endTime": "0:22:20",
-			"simulateBackgroundLoop": false
-		},
+        {
+            "name": "Christmas Calamity",
+            "videoPath": "videos/christmas-calamity.mp4",
+            "thumbnailPath": "thumbnails/psalty-calamity.jpg",
+            "startTime": "0:0:0",
+            "endTime": "0:42:43",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Colby's Missing Memory",
+            "videoPath": "videos/colby-missing-mem.mp4",
+            "thumbnailPath": "thumbnails/colby.jpg",
+            "startTime": "0:0:5",
+            "endTime": "0:48:56",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Donut Man Baseball",
+            "videoPath": "videos/donut-man.mp4",
+            "thumbnailPath": "thumbnails/donut-man.jpg",
+            "startTime": "0:0:0",
+            "endTime": "0:26:37",
+            "simulateBackgroundLoop": true
+        },
 		{
 			"name": "Donut Man Goliath",
 			"videoPath": "videos/donut-man-goliath.mp4",
@@ -97,102 +65,124 @@
 			"simulateBackgroundLoop": false
 		},
 		{
-			"name": "Family Feud",
-			"videoPath": "videos/family-feud.mp4",
-			"thumbnailPath": "thumbnails/familyfeud.jpg",
-			"startTime": "0:0:0",
-			"endTime": "0:19:47",
-			"simulateBackgroundLoop": true
-		},
+            "name": "Praise In Motion 2",
+            "videoPath": "videos/praise-in-motion-2.mp4",
+            "thumbnailPath": "thumbnails/donut-man.jpg",
+            "startTime": "0:0:23",
+            "endTime": "0:25:35",
+            "simulateBackgroundLoop": false
+        },
+        {
+            "name": "Old Men",
+            "videoPath": "videos/fullhouse-old-men.mp4",
+            "thumbnailPath": "thumbnails/fullhouse-old-men.jpg",
+            "startTime": "0:0:1.5",
+            "endTime": "0:22:28",
+            "simulateBackgroundLoop": false
+        },
+        {
+            "name": "Car In The Kitchen",
+            "videoPath": "videos/fullhouse-car-in-kitchen.mp4",
+            "thumbnailPath": "thumbnails/fullhouse-car-kitchen.jpg",
+            "startTime": "0:0:1.5",
+            "endTime": "0:22:27",
+            "simulateBackgroundLoop": false
+        },
+        {
+            "name": "Sillyville",
+            "videoPath": "videos/wee-sing-sillyville.mp4",
+            "thumbnailPath": "thumbnails/wee-sing-sillyville.jpg",
+            "startTime": "0:0:15.5",
+            "endTime": "0:56:33",
+            "simulateBackgroundLoop": true
+        },
 		{
-			"name": "Baseball",
-			"videoPath": "videos/perfect-strangers-baseball.mp4",
-			"thumbnailPath": "thumbnails/perfect-strangers-baseball.jpg",
-			"startTime": "0:1:31",
-			"endTime": "0:24:33",
-			"simulateBackgroundLoop": true
-		},
+            "name": "Praise In Motion 3",
+            "videoPath": "videos/praise-in-motion-3.mp4",
+            "thumbnailPath": "thumbnails/donut-man.jpg",
+            "startTime": "0:0:22",
+            "endTime": "0:22:20",
+            "simulateBackgroundLoop": false
+        },
 		{
-			"name": "Plumbing",
-			"videoPath": "videos/perfect-strangers-plumbing.mp4",
-			"thumbnailPath": "thumbnails/perfect-strangers-plumbing.jpg",
-			"startTime": "0:1:16",
-			"endTime": "0:23:38",
-			"simulateBackgroundLoop": true
-		},
-			{
-			"name": "Psalty Little Praisers 1",
-			"videoPath": "videos/psalty-lil-praisers-1.mp4",
-			"thumbnailPath": "thumbnails/donut-man.jpg",
-			"startTime": "0:2:21",
-			"endTime": "0:23:52",
-			"simulateBackgroundLoop": true
-		},
+            "name": "Psalty Little Praisers 2",
+            "videoPath": "videos/psalty-lil-praisers-2.mp4",
+            "thumbnailPath": "thumbnails/donut-man.jpg",
+            "startTime": "0:0:27",
+            "endTime": "0:26:35",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Family Feud",
+            "videoPath": "videos/family-feud.mp4",
+            "thumbnailPath": "thumbnails/familyfeud.jpg",
+            "startTime": "0:0:0",
+            "endTime": "0:19:47",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Baseball",
+            "videoPath": "videos/perfect-strangers-baseball.mp4",
+            "thumbnailPath": "thumbnails/perfect-strangers-baseball.jpg",
+            "startTime": "0:1:31",
+            "endTime": "0:24:33",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Plumbing",
+            "videoPath": "videos/perfect-strangers-plumbing.mp4",
+            "thumbnailPath": "thumbnails/perfect-strangers-plumbing.jpg",
+            "startTime": "0:1:16",
+            "endTime": "0:23:38",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "The Price is Right",
+            "videoPath": "videos/price-right.mp4",
+            "thumbnailPath": "thumbnails/price-is-right.jpg",
+            "startTime": "0:0:2",
+            "endTime": "0:38:0",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Camping",
+            "videoPath": "videos/psalty-camping.mp4",
+            "thumbnailPath": "thumbnails/psalty-camping.jpg",
+            "startTime": "0:0:10",
+            "endTime": "0:57:35",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Kids Praise 4",
+            "videoPath": "videos/psalty-praise-4.mp4",
+            "thumbnailPath": "thumbnails/psalty-praise-4.jpg",
+            "startTime": "0:0:40.5",
+            "endTime": "0:42:40",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Grandpa's Magical Toys",
+            "videoPath": "videos/wee-sing-grandpa.mp4",
+            "thumbnailPath": "thumbnails/wee-sing-grandpa.jpg",
+            "startTime": "0:2:45",
+            "endTime": "0:54:34",
+            "simulateBackgroundLoop": true
+        },
+        {
+            "name": "Wheel of Fortune!",
+            "videoPath": "videos/wheel-fortune.mp4",
+            "thumbnailPath": "thumbnails/wheel-of-fortune.jpg",
+            "startTime": "0:0:0",
+            "endTime": "0:20:0",
+            "simulateBackgroundLoop": true
+        },
 		{
-			"name": "Psalty Little Praisers 2",
-			"videoPath": "videos/psalty-lil-praisers-2.mp4",
-			"thumbnailPath": "thumbnails/donut-man.jpg",
-			"startTime": "0:0:27",
-			"endTime": "0:26:35",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "The Price is Right",
-			"videoPath": "videos/price-right.mp4",
-			"thumbnailPath": "thumbnails/price-is-right.jpg",
-			"startTime": "0:0:2",
-			"endTime": "0:38:0",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Camping",
-			"videoPath": "videos/psalty-camping.mp4",
-			"thumbnailPath": "thumbnails/psalty-camping.jpg",
-			"startTime": "0:0:10",
-			"endTime": "0:57:35",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Kids Praise 4",
-			"videoPath": "videos/psalty-praise-4.mp4",
-			"thumbnailPath": "thumbnails/psalty-praise-4.jpg",
-			"startTime": "0:0:40",
-			"endTime": "0:42:40",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Grandpa's Magical Toys",
-			"videoPath": "videos/wee-sing-grandpa.mp4",
-			"thumbnailPath": "thumbnails/wee-sing-grandpa.jpg",
-			"startTime": "0:2:45",
-			"endTime": "0:54:34",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Wheel of Fortune!",
-			"videoPath": "videos/wheel-fortune.mp4",
-			"thumbnailPath": "thumbnails/wheel-of-fortune.jpg",
-			"startTime": "0:0:0",
-			"endTime": "0:20:0",
-			"simulateBackgroundLoop": true
-		}
-	],
-	"videosArchive": [
-		{
-			"name": "Donut Man Camp Harmony",
-			"videoPath": "videos/donut-man-camp.mp4",
-			"thumbnailPath": "thumbnails/donut-man.jpg",
-			"startTime": "0:0:34",
-			"endTime": "0:29:28",
-			"simulateBackgroundLoop": true
-		},
-		{
-			"name": "Amy Schlegel Shower Saturday",
-			"videoPath": "videos/amy-shower-saturday.mp4",
-			"thumbnailPath": "thumbnails/amy-shower-saturday-thumbnail.jpg",
-			"startTime": "0:0:0",
-			"endTime": "0:01:07",
-			"simulateBackgroundLoop": false
-		}
-	]
+            "name": "Psalty Little Praisers 1",
+            "videoPath": "videos/psalty-lil-praisers-1.mp4",
+            "thumbnailPath": "thumbnails/donut-man.jpg",
+            "startTime": "0:2:21",
+            "endTime": "0:23:52",
+            "simulateBackgroundLoop": true
+        }
+    ]
 }
