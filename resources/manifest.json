@@ -1,6 +1,6 @@
 {
     "settings": {
-        "mediaPath": "file:///home/erik/eschware/pi_media/resources",
+        "mediaPath": "file:///home/media/eschware/pi_media/resources",
         "rewindThresholdMS": 5000,
         "thumbnail": {
             "width": 1500,
