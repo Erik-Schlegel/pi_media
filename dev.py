@@ -6,6 +6,7 @@ import pychrome
 from subprocess import Popen
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from pathlib import Path
 
 class RestartHandler(FileSystemEventHandler):
 
@@ -29,12 +30,13 @@ class RestartHandler(FileSystemEventHandler):
 
     def start_script(self):
         if not self.process:
+            dev_index_uri = (Path(__file__).resolve().parent / 'dev_index.html').as_uri()
             self.process = subprocess.Popen([
                 'chromium-browser',
                 '--allow-file-access-from-files',
                 '--user-data-dir=/tmp/pi_media_data',
                 '--remote-debugging-port=9222',
-                'file:///home/erik/eschware/pi_media/dev_index.html'
+                dev_index_uri
             ])
             for _ in range(20):
                 time.sleep(0.5)

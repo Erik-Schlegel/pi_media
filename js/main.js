@@ -13,6 +13,73 @@ async function initApp()
 	let activeIndex = 3;
 	let activeVideoEl = null;
 	let _audioContext = null;
+	let socket = null;
+	const pendingLogs = [];
+
+
+	const safeStringify = value =>
+	{
+		try
+		{
+			return JSON.stringify(value);
+		}
+		catch (_e)
+		{
+			return String(value);
+		}
+	};
+
+
+	const sendClientLog = payload =>
+	{
+		const basePayload = {
+			type: 'clientLog',
+			timestamp: new Date().toISOString(),
+			...payload,
+		};
+
+		if (socket?.readyState === WebSocket.OPEN)
+		{
+			try
+			{
+				socket.send(JSON.stringify(basePayload));
+			}
+			catch (error)
+			{
+				console.error('[pi_media] Failed to send client log over WebSocket', error);
+				pendingLogs.push(basePayload);
+			}
+			return;
+		}
+
+		pendingLogs.push(basePayload);
+	};
+
+
+	const reportError = (message, error = null, extra = null) =>
+	{
+		const stack = error?.stack || null;
+		const errorMessage = error?.message || null;
+		console.error(`[pi_media] ${message}`, error || '', extra || '');
+		sendClientLog({
+			level: 'error',
+			message,
+			errorMessage,
+			stack,
+			extra,
+		});
+	};
+
+
+	const reportInfo = (message, extra = null) =>
+	{
+		console.log(`[pi_media] ${message}`, extra || '');
+		sendClientLog({
+			level: 'info',
+			message,
+			extra,
+		});
+	};
 
 
 	const throttle = (callback, limit) =>
@@ -151,6 +218,11 @@ async function initApp()
 		videoEl.appendChild(source);
 
 		activeVideoEl = videoEl;
+		reportInfo('Video source initialized', {
+			source: source.src,
+			startTime,
+			endTime,
+		});
 
 		initAudioCompressor();
 	};
@@ -274,16 +346,16 @@ async function initApp()
 		let videoEl = document.querySelector('video');
 		if (!videoEl) return;
 		videoEl.currentTime = startTime;
-		try
+		videoEl.play().catch(error =>
 		{
-			await videoEl.play();
-		}
-		catch(ex)
-		{
-			//Interesting highly intermittent error. Testing if simple catch will address.
-			//https://developer.chrome.com/blog/play-request-was-interrupted
-
-		}
+			reportError('video.play() rejected', error, {
+				currentSrc: videoEl.currentSrc,
+				readyState: videoEl.readyState,
+				networkState: videoEl.networkState,
+				currentTime: videoEl.currentTime,
+				requestedStartTime: startTime,
+			});
+		});
 	};
 
 
@@ -453,11 +525,64 @@ async function initApp()
 	};
 
 
+	const addErrorHandlers = () =>
+	{
+		window.addEventListener('error', event =>
+		{
+			reportError('Unhandled window error', event.error || null, {
+				message: event.message,
+				filename: event.filename,
+				lineno: event.lineno,
+				colno: event.colno,
+			});
+		});
+
+		window.addEventListener('unhandledrejection', event =>
+		{
+			reportError('Unhandled promise rejection', event.reason instanceof Error ? event.reason : null, {
+				reason: event.reason instanceof Error ? event.reason.message : safeStringify(event.reason),
+			});
+		});
+
+		const videoEl = document.querySelector(videoElSelector);
+		if (!videoEl) return;
+
+		videoEl.addEventListener('error', () =>
+		{
+			const mediaError = videoEl.error;
+			reportError('Video element error event', null, {
+				currentSrc: videoEl.currentSrc,
+				code: mediaError?.code,
+				message: mediaError?.message || null,
+				readyState: videoEl.readyState,
+				networkState: videoEl.networkState,
+				currentTime: videoEl.currentTime,
+			});
+		});
+
+		['stalled', 'waiting', 'abort', 'suspend', 'emptied'].forEach(eventName =>
+		{
+			videoEl.addEventListener(eventName, () =>
+			{
+				reportInfo(`Video event: ${eventName}`, {
+					currentSrc: videoEl.currentSrc,
+					readyState: videoEl.readyState,
+					networkState: videoEl.networkState,
+					currentTime: videoEl.currentTime,
+				});
+			});
+		});
+	};
+
+
+
+
 	initCarousel();
 	addEventHandlers();
+	addErrorHandlers();
 
 
-	const socket = new WebSocket('ws://localhost:8765');
+	socket = new WebSocket('ws://localhost:8765');
 
 
 	const socketOpenPromise = new Promise((resolve, reject) =>
@@ -467,6 +592,8 @@ async function initApp()
 		socket.addEventListener('open', function (event)
 		{
 			console.log('WebSocket connection established.');
+			while (pendingLogs.length)
+				socket.send(JSON.stringify(pendingLogs.shift()));
 			// Notify the Python script that the page is ready
 			socket.send(JSON.stringify({ type: 'pageReady' }));
 			resolve();
@@ -475,6 +602,9 @@ async function initApp()
 		socket.addEventListener('error', function (event)
 		{
 			console.error('WebSocket error:', event);
+			reportError('WebSocket error event', null, {
+				readyState: socket.readyState,
+			});
 			reject(event);
 		});
 	});
