@@ -191,7 +191,7 @@ def launch_chromium():
         'chromium-browser',
         '--start-maximized',
         '--start-fullscreen',
-        # '--kiosk',
+        '--kiosk',
         '--remote-allow-origins=*',
         '--allow-file-access-from-files',
         '--noerrdialogs',
