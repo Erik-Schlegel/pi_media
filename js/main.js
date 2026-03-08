@@ -7,9 +7,15 @@ async function initApp()
 	const carouselElSelector = '[data-id=CarouselComponent]';
 	const videoElSelector = '[data-id=VideoComponent]';
 	const THROTTLE_SPEED = 500;
+	const manifestPath = 'resources/manifest.json';
 
-	let manifestResponse = await fetch('resources/manifest.json');
+	let manifestResponse = await fetch(manifestPath);
 	let manifest = await manifestResponse.json();
+	const manifestUrl = new URL(manifestPath, window.location.href);
+	const manifestDirectoryUrl = new URL('.', manifestUrl);
+	const configuredMediaPath = manifest?.settings?.mediaPath ?? '.';
+	const normalizedMediaPath = configuredMediaPath === '.' ? './' : `${configuredMediaPath.replace(/\/$/, '')}/`;
+	const mediaBaseUrl = new URL(normalizedMediaPath, manifestDirectoryUrl);
 	let activeIndex = 3;
 	let activeVideoEl = null;
 	let _audioContext = null;
@@ -111,6 +117,13 @@ async function initApp()
 	};
 
 
+	const resolveMediaUrl = mediaRelativePath =>
+	{
+		const sanitizedPath = String(mediaRelativePath || '').replace(/^\.\//, '');
+		return new URL(sanitizedPath, mediaBaseUrl).toString();
+	};
+
+
 	const modeBasedCall_CarouselVideo = (carouselFn, videoFn) =>
 	{
 		console.log('modeBasedCall_CarouselVideo', carouselFn, videoFn);
@@ -164,7 +177,7 @@ async function initApp()
 				<img
 					width="${manifest.settings.thumbnail.width}"
 					height="${manifest.settings.thumbnail.height}"
-					src="${manifest.settings.mediaPath}/${video.thumbnailPath}"
+					src="${resolveMediaUrl(video.thumbnailPath)}"
 				>
 				<h3>${video.name}</h3>
 			</div>`
@@ -213,7 +226,7 @@ async function initApp()
 		videoEl.dataset.videoEnd = endTime;
 
 		const source = document.createElement('source');
-		source.src = `${manifest.settings.mediaPath}/${url}`;
+		source.src = resolveMediaUrl(url);
 		source.type = 'video/mp4';
 		videoEl.appendChild(source);
 

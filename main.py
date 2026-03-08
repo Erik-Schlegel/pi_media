@@ -166,10 +166,12 @@ def listen_to_cec(loop):
 
 def handle_cec_output(output, loop):
     """Handle output received from cec-client."""
-    match = re.search(r'>> \S+:44:(..)', output)
-    if match:
-        key_code = match.group(1)
-        command = ''
+    command = ''
+
+    # User Control Pressed: <src><dst>:44:<key>
+    key_match = re.search(r'>>\s*\S+:44:(..)', output, re.IGNORECASE)
+    if key_match:
+        key_code = key_match.group(1).lower()
 
         if key_code == '01':
             logger.info('Up button pressed')
@@ -184,15 +186,22 @@ def handle_cec_output(output, loop):
             logger.info('Enter button pressed')
             command = 'handleEnterPress'
 
-        if command:
-            future = asyncio.run_coroutine_threadsafe(
-                command_queue.put(command),
-                loop
-            )
-            try:
-                future.result()
-            except Exception as e:
-                logger.exception("Error adding command to queue: %s", e)
+    # Standby broadcast (e.g. "0f:36") should trigger the same action as Up.
+    elif re.search(r'>>\s*0f:36\b', output, re.IGNORECASE):
+        logger.info('Standby event received (0f:36)')
+        command = 'handleUpPress'
+
+    if not command:
+        return
+
+    future = asyncio.run_coroutine_threadsafe(
+        command_queue.put(command),
+        loop
+    )
+    try:
+        future.result()
+    except Exception as e:
+        logger.exception("Error adding command to queue: %s", e)
 
 
 def launch_chromium():
