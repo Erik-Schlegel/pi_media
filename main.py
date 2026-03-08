@@ -20,10 +20,16 @@ cec_lock = threading.Lock()
 def build_logger():
     """Create a logger that writes both to stdout and a rotating file."""
     logger = logging.getLogger("pi_media")
-    if logger.handlers:
-        return logger
-
     logger.setLevel(logging.INFO)
+    # Prevent root logger handlers from duplicating records from this logger.
+    logger.propagate = False
+
+    # Rebuild handlers so repeated initialization never stacks duplicates.
+    if logger.handlers:
+        for handler in list(logger.handlers):
+            logger.removeHandler(handler)
+            handler.close()
+
     formatter = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 
     stream_handler = logging.StreamHandler(sys.stdout)

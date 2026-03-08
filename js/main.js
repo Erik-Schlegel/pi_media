@@ -2,6 +2,13 @@ import DisplayMode from "./enums/displayMode.js";
 
 async function initApp()
 {
+	if (window.__piMediaInitialized)
+	{
+		console.warn('[pi_media] initApp called more than once; skipping duplicate initialization.');
+		return;
+	}
+	window.__piMediaInitialized = true;
+
 	console.log('initApp');
 
 	const carouselElSelector = '[data-id=CarouselComponent]';
