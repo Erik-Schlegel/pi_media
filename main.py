@@ -7,11 +7,14 @@ import websockets
 import signal
 import sys
 import logging
+import threading
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 command_queue = asyncio.Queue()
 chromium_process = None
+cec_process = None
+cec_lock = threading.Lock()
 
 
 def build_logger():
@@ -135,21 +138,30 @@ async def process_command_queue(websocket):
 
 def listen_to_cec(loop):
     """Function to listen to CEC commands using cec-client."""
+    global cec_process
     try:
-        process = subprocess.Popen(
-            ['cec-client', '-t', 'p', '-d', '8'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            universal_newlines=True
-        )
+        with cec_lock:
+            if cec_process and cec_process.poll() is None:
+                logger.info("CEC listener already running; skipping duplicate start.")
+                return
 
-        for output in process.stdout:
+            cec_process = subprocess.Popen(
+                ['cec-client', '-t', 'p', '-d', '8'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True
+            )
+
+        for output in cec_process.stdout:
             if output:
                 handle_cec_output(output.strip(), loop)
 
-        process.stdout.close()
+        cec_process.stdout.close()
     except Exception as e:
         logger.exception("Exception in listen_to_cec: %s", e)
+    finally:
+        with cec_lock:
+            cec_process = None
 
 
 def handle_cec_output(output, loop):
@@ -214,8 +226,37 @@ def terminate_chromium():
         logger.info("Chromium terminated.")
 
 
+def terminate_cec():
+    """Terminate cec-client process if it's running."""
+    global cec_process
+    with cec_lock:
+        if cec_process and cec_process.poll() is None:
+            logger.info("Terminating cec-client...")
+            cec_process.terminate()
+            cec_process.wait(timeout=5)
+            logger.info("cec-client terminated.")
+        cec_process = None
+
+
+async def monitor_chromium_exit(loop):
+    """Stop the app if Chromium exits to avoid headless background state."""
+    global chromium_process
+    while True:
+        await asyncio.sleep(1)
+        if not chromium_process:
+            continue
+        if chromium_process.poll() is None:
+            continue
+
+        logger.warning("Chromium process exited; stopping app.")
+        terminate_cec()
+        loop.stop()
+        return
+
+
 def signal_handler(sig, frame):
     logger.info("Signal %s received. Shutting down...", sig)
+    terminate_cec()
     terminate_chromium()
     loop = asyncio.get_event_loop()
     loop.stop()
@@ -231,6 +272,7 @@ def main():
     start_server = websockets.serve(handle_browser_connection, 'localhost', 8765)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(start_server)
+    loop.create_task(monitor_chromium_exit(loop))
     logger.info("WebSocket server started.")
 
     try:
@@ -238,6 +280,7 @@ def main():
     except KeyboardInterrupt:
         logger.info("KeyboardInterrupt received. Exiting...")
     finally:
+        terminate_cec()
         terminate_chromium()
         loop.close()
 
