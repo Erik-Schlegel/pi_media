@@ -2,8 +2,7 @@ venv
 tmp
 usb
 media
-videos/
-thumbnails/
+*.mp4
 
 
 # Byte-compiled / optimized / DLL files
