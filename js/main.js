@@ -25,6 +25,8 @@ async function initApp()
 	const mediaBaseUrl = new URL(normalizedMediaPath, manifestDirectoryUrl);
 	let activeIndex = 3;
 	let activeVideoEl = null;
+	let playRequestVersion = 0;
+	let pendingPlayOnMetadata = null;
 	let _audioContext = null;
 	let socket = null;
 	const pendingLogs = [];
@@ -220,6 +222,13 @@ async function initApp()
 	{
 		console.log('initVideoTag');
 		let videoEl = document.querySelector(videoElSelector);
+		playRequestVersion += 1;
+
+		if (pendingPlayOnMetadata)
+		{
+			videoEl.removeEventListener('loadedmetadata', pendingPlayOnMetadata);
+			pendingPlayOnMetadata = null;
+		}
 
 		// Clean up the existing element
 		videoEl.pause();
@@ -356,7 +365,22 @@ async function initApp()
 		console.log('toggleVideoPlay');
 		const video = document.querySelector('video');
 		if (!video) return;
-		video.paused ? video.play() : video.pause();
+
+		if (video.paused)
+		{
+			video.play().catch(error =>
+			{
+				reportError('toggleVideoPlay: video.play() rejected', error, {
+					readyState: video.readyState,
+					networkState: video.networkState,
+					currentTime: video.currentTime,
+				});
+			});
+		}
+		else
+		{
+			video.pause();
+		}
 	};
 
 
@@ -365,17 +389,66 @@ async function initApp()
 		console.log('playVideo');
 		let videoEl = document.querySelector('video');
 		if (!videoEl) return;
-		videoEl.currentTime = startTime;
-		videoEl.play().catch(error =>
+		const requestVersion = playRequestVersion;
+
+		// Helper to attempt playback
+		const attemptPlay = () =>
 		{
-			reportError('video.play() rejected', error, {
-				currentSrc: videoEl.currentSrc,
-				readyState: videoEl.readyState,
-				networkState: videoEl.networkState,
-				currentTime: videoEl.currentTime,
-				requestedStartTime: startTime,
+			if (requestVersion !== playRequestVersion) return;
+
+			videoEl.currentTime = startTime;
+			videoEl.play().catch(error =>
+			{
+				if (requestVersion !== playRequestVersion) return;
+
+				if (error?.name === 'AbortError')
+				{
+					reportInfo('video.play() aborted', {
+						currentSrc: videoEl.currentSrc,
+						readyState: videoEl.readyState,
+						networkState: videoEl.networkState,
+						currentTime: videoEl.currentTime,
+						requestedStartTime: startTime,
+					});
+					return;
+				}
+
+				reportError('video.play() rejected', error, {
+					currentSrc: videoEl.currentSrc,
+					errorName: error?.name || null,
+					readyState: videoEl.readyState,
+					networkState: videoEl.networkState,
+					currentTime: videoEl.currentTime,
+					requestedStartTime: startTime,
+				});
 			});
-		});
+		};
+
+		// If video is not ready, wait for it to be ready before setting time and playing
+		if (videoEl.readyState < 1) // HAVE_METADATA = 1
+		{
+			const onLoadedMetadata = () =>
+			{
+				videoEl.removeEventListener('loadedmetadata', onLoadedMetadata);
+				if (pendingPlayOnMetadata === onLoadedMetadata)
+				{
+					pendingPlayOnMetadata = null;
+				}
+				attemptPlay();
+			};
+
+			if (pendingPlayOnMetadata)
+			{
+				videoEl.removeEventListener('loadedmetadata', pendingPlayOnMetadata);
+			}
+
+			pendingPlayOnMetadata = onLoadedMetadata;
+			videoEl.addEventListener('loadedmetadata', onLoadedMetadata);
+		}
+		else
+		{
+			attemptPlay();
+		}
 	};
 
 
