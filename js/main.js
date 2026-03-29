@@ -14,6 +14,9 @@ async function initApp()
 	const carouselElSelector = '[data-id=CarouselComponent]';
 	const videoElSelector = '[data-id=VideoComponent]';
 	const THROTTLE_SPEED = 500;
+	const READY_EVENT_TIMEOUT_MS = 3000;
+	const SEEK_EPSILON_SECONDS = 0.05;
+	const DECODE_RETRY_OFFSET_SECONDS = 0.25;
 	const manifestPath = 'resources/manifest.json';
 
 	let manifestResponse = await fetch(manifestPath);
@@ -26,7 +29,6 @@ async function initApp()
 	let activeIndex = 3;
 	let activeVideoEl = null;
 	let playRequestVersion = 0;
-	let pendingPlayOnMetadata = null;
 	let _audioContext = null;
 	let socket = null;
 	const pendingLogs = [];
@@ -224,12 +226,6 @@ async function initApp()
 		let videoEl = document.querySelector(videoElSelector);
 		playRequestVersion += 1;
 
-		if (pendingPlayOnMetadata)
-		{
-			videoEl.removeEventListener('loadedmetadata', pendingPlayOnMetadata);
-			pendingPlayOnMetadata = null;
-		}
-
 		// Clean up the existing element
 		videoEl.pause();
 		videoEl.removeAttribute('src');
@@ -390,64 +386,162 @@ async function initApp()
 		let videoEl = document.querySelector('video');
 		if (!videoEl) return;
 		const requestVersion = playRequestVersion;
+		const requestedStartTime = Number(startTime) || 0;
 
-		// Helper to attempt playback
-		const attemptPlay = () =>
-		{
-			if (requestVersion !== playRequestVersion) return;
-
-			videoEl.currentTime = startTime;
-			videoEl.play().catch(error =>
+		const waitForEvent = (eventName, timeoutMs = READY_EVENT_TIMEOUT_MS) =>
+			new Promise((resolve, reject) =>
 			{
-				if (requestVersion !== playRequestVersion) return;
-
-				if (error?.name === 'AbortError')
+				if (requestVersion !== playRequestVersion)
 				{
-					reportInfo('video.play() aborted', {
-						currentSrc: videoEl.currentSrc,
-						readyState: videoEl.readyState,
-						networkState: videoEl.networkState,
-						currentTime: videoEl.currentTime,
-						requestedStartTime: startTime,
-					});
+					reject(new Error('stale-play-request'));
 					return;
 				}
 
-				reportError('video.play() rejected', error, {
+				let timeoutId = null;
+				const cleanup = () =>
+				{
+					videoEl.removeEventListener(eventName, onEvent);
+					videoEl.removeEventListener('error', onMediaError);
+					if (timeoutId !== null)
+					{
+						clearTimeout(timeoutId);
+					}
+				};
+
+				const onEvent = () =>
+				{
+					cleanup();
+					resolve();
+				};
+
+				const onMediaError = () =>
+				{
+					cleanup();
+					const mediaError = videoEl.error;
+					const err = new Error(mediaError?.message || 'media-error');
+					err.mediaErrorCode = mediaError?.code;
+					reject(err);
+				};
+
+				videoEl.addEventListener(eventName, onEvent, { once: true });
+				videoEl.addEventListener('error', onMediaError, { once: true });
+				timeoutId = window.setTimeout(() =>
+				{
+					cleanup();
+					reject(new Error(`${eventName}-timeout`));
+				}, timeoutMs);
+			});
+
+		const isDecodeFailure = error =>
+			error?.mediaErrorCode === 3 ||
+			videoEl.error?.code === 3 ||
+			String(error?.message || '').includes('PIPELINE_ERROR_DECODE');
+
+		const waitForMetadata = async () =>
+		{
+			if (videoEl.readyState >= 1) return;
+			await waitForEvent('loadedmetadata');
+		};
+
+		const waitForCanPlay = async () =>
+		{
+			if (videoEl.readyState >= 3) return;
+			await waitForEvent('canplay');
+		};
+
+		const seekToTime = async targetTime =>
+		{
+			if (Math.abs(videoEl.currentTime - targetTime) <= SEEK_EPSILON_SECONDS)
+			{
+				return;
+			}
+
+			videoEl.currentTime = targetTime;
+			if (videoEl.seeking)
+			{
+				await waitForEvent('seeked');
+			}
+		};
+
+		const attemptPlay = async targetTime =>
+		{
+			await waitForMetadata();
+			if (requestVersion !== playRequestVersion) return;
+
+			await seekToTime(targetTime);
+			if (requestVersion !== playRequestVersion) return;
+
+			await waitForCanPlay();
+			if (requestVersion !== playRequestVersion) return;
+
+			await videoEl.play();
+		};
+
+		try
+		{
+			await attemptPlay(requestedStartTime);
+		}
+		catch (error)
+		{
+			if (requestVersion !== playRequestVersion) return;
+
+			const decodeFailure = isDecodeFailure(error);
+			if (decodeFailure)
+			{
+				const retryStartTime = requestedStartTime + DECODE_RETRY_OFFSET_SECONDS;
+				reportInfo('Retrying video playback after decode failure', {
 					currentSrc: videoEl.currentSrc,
-					errorName: error?.name || null,
+					requestedStartTime,
+					retryStartTime,
 					readyState: videoEl.readyState,
 					networkState: videoEl.networkState,
 					currentTime: videoEl.currentTime,
-					requestedStartTime: startTime,
 				});
-			});
-		};
 
-		// If video is not ready, wait for it to be ready before setting time and playing
-		if (videoEl.readyState < 1) // HAVE_METADATA = 1
-		{
-			const onLoadedMetadata = () =>
-			{
-				videoEl.removeEventListener('loadedmetadata', onLoadedMetadata);
-				if (pendingPlayOnMetadata === onLoadedMetadata)
+				try
 				{
-					pendingPlayOnMetadata = null;
+					// Reset the errored element before retrying — without load(),
+					// the element stays in error state and canplay never fires.
+					videoEl.load();
+					await attemptPlay(retryStartTime);
+					return;
 				}
-				attemptPlay();
-			};
-
-			if (pendingPlayOnMetadata)
-			{
-				videoEl.removeEventListener('loadedmetadata', pendingPlayOnMetadata);
+				catch (retryError)
+				{
+					if (requestVersion !== playRequestVersion) return;
+					reportError('video.play() rejected after decode retry', retryError, {
+						currentSrc: videoEl.currentSrc,
+						errorName: retryError?.name || null,
+						readyState: videoEl.readyState,
+						networkState: videoEl.networkState,
+						currentTime: videoEl.currentTime,
+						requestedStartTime,
+						retryStartTime,
+					});
+					return;
+				}
 			}
 
-			pendingPlayOnMetadata = onLoadedMetadata;
-			videoEl.addEventListener('loadedmetadata', onLoadedMetadata);
-		}
-		else
-		{
-			attemptPlay();
+			if (error?.name === 'AbortError')
+			{
+				reportInfo('video.play() aborted', {
+					currentSrc: videoEl.currentSrc,
+					readyState: videoEl.readyState,
+					networkState: videoEl.networkState,
+					currentTime: videoEl.currentTime,
+					requestedStartTime,
+				});
+				return;
+			}
+
+			reportError('video.play() rejected', error, {
+				currentSrc: videoEl.currentSrc,
+				errorName: error?.name || null,
+				readyState: videoEl.readyState,
+				networkState: videoEl.networkState,
+				currentTime: videoEl.currentTime,
+				requestedStartTime,
+			});
 		}
 	};
 
